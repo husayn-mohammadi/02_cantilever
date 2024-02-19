@@ -1,14 +1,16 @@
 import os, sys, time
 import openseespy.opensees     as ops
-# import numpy                   as np
-# import matplotlib.pyplot       as plt
 import functions.FuncPlot      as fp
 import functions.FuncAnalysis  as fa
+# import numpy                   as np
+# import matplotlib.pyplot       as plt
+
+
 start_timeIDA = time.time()
 sys.stdout = open('logIDA.txt', 'w') 
 g = 9.80665
 outputDirIDA = "Output/IDA"
-os.makedirs(outputDirIDA, exist_ok=True); 
+os.makedirs(outputDirIDA, exist_ok=True)
 
 recList     = fa.get_file_names("Input/GM")
 recList     = recList[39:40]

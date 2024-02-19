@@ -1,5 +1,4 @@
 import time, os, sys, winsound
-start_time = time.time()
 import openseespy.opensees     as ops
 import opsvis                  as opv
 import functions.FuncModel     as fm
@@ -7,6 +6,7 @@ import functions.FuncAnalysis  as fa
 import functions.FuncRecorders as fr
 import functions.FuncPlot      as fp
 import numpy                   as np
+
 
 
 
@@ -31,7 +31,7 @@ exertGravityLoad= True
 linearity       = False
 typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
-typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
+typeAnalysis    = ['NTHA']             # 'monotonic', 'cyclic', 'NTHA'
 
 Lw              = Section['wall']['propWeb'][1] + 2*Section['wall']['propFlange'][1]
 PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
@@ -71,31 +71,32 @@ dispTarList     = [
 # Plotting Options:
 buildingWidth1=20.; buildingHeight1=17.
 plot_undefo     = False
-plot_loaded     = True
-plot_defo       = True
+plot_loaded     = False
+plot_defo       = False
 sfac            = 10
     
-plot_MomCurv    = True
+plot_MomCurv    = False
 plot_Analysis   = True
 plot_StressStrain=True
 plot_section    = False
 #=============================================================================
 #    MAIN
 #=============================================================================
-
+start_time = time.time()
 if recordToLog == True:
     sys.stdout = open('log.txt', 'w')    
 
 numFolder = 1
 for types in typeAnalysis:
-    outputDir = f'Output/Pushover/{types}/{numFolder}'; outputDirWalls = f'Output/Pushover/{types}/{numFolder}/wall'; outputDirBeams = f'Output/Pushover/{types}/{numFolder}/beams'
+    outputDir       = f'Output/Pushover/{types}/{numFolder}'
+    outputDirWalls  = f'Output/Pushover/{types}/{numFolder}/wall'
+    outputDirBeams  = f'Output/Pushover/{types}/{numFolder}/beams'
+    outputDirNTHA   = "Output/NTHA"
     
-    os.makedirs(outputDir, exist_ok=True); 
-    os.makedirs(outputDirWalls, exist_ok=True); 
-    os.makedirs(outputDirBeams, exist_ok=True);
-    
-    outputDirNTHA = "Output/NTHA"
-    os.makedirs(outputDirNTHA, exist_ok=True)
+    os.makedirs(outputDir,      exist_ok=True)
+    os.makedirs(outputDirWalls, exist_ok=True)
+    os.makedirs(outputDirBeams, exist_ok=True)
+    os.makedirs(outputDirNTHA,  exist_ok=True)
     
     # Build Model
     ops.wipe()

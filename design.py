@@ -5,12 +5,6 @@ import functions.FuncAnalysis  as fa
 exec(open("Input/unitsSI.py").read()) 
 # exec(open("Input/inputData.py").read()) 
 sys.stdout = open("logDesign.txt", 'w') 
-def replace_line(file_name, line_num, text):
-    lines = open(file_name, 'r').readlines()
-    lines[line_num - 1] = text + '\n'  # array index starts at 0, subtract 1
-    out = open(file_name, 'w')
-    out.writelines(lines)
-    out.close()
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 1: Input Data
@@ -180,8 +174,8 @@ def replace_line(file_name, line_num, text):
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 2: Analysis for Design
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-replace_line('MAIN.py', 31, "linearity       = True")
-replace_line('MAIN.py', 78, "plot_MomCurv    = False")
+fa.replace_line('MAIN.py', 31, "linearity       = True")
+fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
 exec(open("MAIN.py").read()) 
 # Effective distance between wall centroids
 L_eff   = L_CB +Lw
@@ -310,8 +304,8 @@ print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 
 # EIeff_Ten   = 7.7e9   *kip*inch **2
 # EIeff_Com   = 1.81e10 *kip*inch **2
-replace_line('MAIN.py', 31, "linearity       = False")
-replace_line('MAIN.py', 78, "plot_MomCurv    = True")
+fa.replace_line('MAIN.py', 31, "linearity       = False")
+fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
 exec(open("MAIN.py").read()) 
 EIeff_Ten   = EIeff_walls[0]
 EIeff_Com   = EIeff_walls[1]

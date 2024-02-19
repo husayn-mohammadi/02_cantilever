@@ -443,6 +443,14 @@ def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag
     ops.wipeAnalysis()
     return OK
 
+
+def replace_line(file_name, line_num, text):
+    lines = open(file_name, 'r').readlines()
+    lines[line_num - 1] = text + '\n'  # array index starts at 0, subtract 1
+    out = open(file_name, 'w')
+    out.writelines(lines)
+    out.close()
+
 def get_file_names(directory): # This functions returns a list containing the file names in the given directory
     return [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 

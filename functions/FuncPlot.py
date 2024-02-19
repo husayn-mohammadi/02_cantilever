@@ -25,7 +25,7 @@ def plotPushoverX(outputDir):
     x_Vx = np.column_stack((x, Vx))
     np.savetxt(f"{outputDir}/Pushover.txt", x_Vx)
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=200)
     fig.suptitle(f"Pushover Curve: {outputDir[16:]}")
     ax.set_xlabel(f'Displacement ({unitLength})')
     if unitForce=="kN":
@@ -279,7 +279,7 @@ def plotMomCurv(outputDir, tagEle, section, typeBuild):
     MomCurv     = np.column_stack((curvature, moment))
     np.savetxt(f"{outputDir}/MomentCurvature_{tagEle}.txt", MomCurv)
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=200)
     fig.suptitle(f"Momemnt-Curvature: {tagEle}")
     ax.set_xlabel(f'curvature (m^-1)')
     ax.set_ylabel('Moment (kN.m)')

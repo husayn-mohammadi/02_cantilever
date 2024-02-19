@@ -2,7 +2,6 @@ exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open("In
 exec(open("MAIN.py").readlines()[19]) # It SHOULD read and execute exec(open("Input/inputData.py").read())
 import sys
 import openseespy.opensees     as ops
-import functions.FuncSection   as fs
 # import functions.FuncPlot      as fp
 from functions.ClassComposite import compo
 

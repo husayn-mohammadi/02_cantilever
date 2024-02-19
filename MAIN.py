@@ -1,7 +1,5 @@
-import time
+import time, os, sys, winsound
 start_time = time.time()
-import os
-import sys
 import openseespy.opensees     as ops
 import opsvis                  as opv
 import functions.FuncModel     as fm
@@ -9,7 +7,9 @@ import functions.FuncAnalysis  as fa
 import functions.FuncRecorders as fr
 import functions.FuncPlot      as fp
 import numpy                   as np
-import winsound
+
+
+
 
 
 #=============================================================================

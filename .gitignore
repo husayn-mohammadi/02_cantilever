@@ -1,0 +1,28 @@
+# Ignored Files:
+## by file extensions:
+
+
+## by file names:
+log.txt
+logFile.txt
+
+# Ignored Folders:
+02_Findings/
+Archive/
+Output/
+
+.spyproject/
+
+.vscode/
+
+functions/__pycache__/
+
+Input/GM/
+
+MAIN_Series.py
+
+01_Documentation/log of problems in programming.xlsx
+
+logIDA.txt
+
+logDesign.txt

@@ -84,7 +84,7 @@ plot_section    = False
 #=============================================================================
 
 if recordToLog == True:
-    logFile = 'log.txt'; sys.stdout = open(logFile, 'w')    
+    sys.stdout = open('log.txt', 'w')    
 
 numFolder = 1
 for types in typeAnalysis:

@@ -71,7 +71,7 @@ dispTarList     = [
 # Plotting Options:
 buildingWidth1=20.; buildingHeight1=17.
 plot_undefo     = False
-plot_loaded     = False
+plot_loaded     = True
 plot_defo       = True
 sfac            = 10
     

@@ -26,7 +26,7 @@ def plotPushoverX(outputDir):
     np.savetxt(f"{outputDir}/Pushover.txt", x_Vx)
     
     fig, ax = plt.subplots(figsize=(10, 7), dpi=200)
-    fig.suptitle(f"Pushover Curve: {outputDir[16:]}")
+    fig.suptitle(f"Pushover Curve: {outputDir[16:-4]}", fontsize=16)
     ax.set_xlabel(f'Displacement ({unitLength})')
     if unitForce=="kN":
         ax.set_ylabel('Shear (kN)')
@@ -40,6 +40,8 @@ def plotPushoverX(outputDir):
     elif unitForce=="lb":
         ax.set_ylabel('Shear (kip)')
         plt.plot(x, Vx/1e3, linewidth=0.8)
+    plt.tight_layout()
+    plt.show()
     
     return x, Vx
 

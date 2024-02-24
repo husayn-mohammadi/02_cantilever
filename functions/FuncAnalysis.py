@@ -1,14 +1,14 @@
 exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open("Input/units    .py").read())
 exec(open("MAIN.py").readlines()[19]) # It SHOULD read and execute exec(open("Input/inputData.py").read())
+import time, os, eqsig, winsound, sys
 import openseespy.opensees     as ops
 import numpy                   as np
-import time, os, eqsig
-import sys
 import functions.FuncRecorders as fr
 import functions.FuncPlot      as fp
 import matplotlib.pyplot       as plt
-## import winsound
 # from colorama import Fore, Style # print(f"{Fore.YELLOW} your text {Style.RESET_ALL}")
+
+
 
 def analyzeEigen(nEigen, printIt=True):
     omega2List  = sorted(ops.eigen(nEigen))
@@ -208,7 +208,10 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
         testerList      = ['NormDispIncr', 'NormUnbalance', 'EnergyIncr', ]#, 'RelativeNormUnbalance']
         algorithmList   = [*(1*['Newton', 'KrylovNewton', 'RaphsonNewton', 'NewtonLineSearch 0.65', ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
         numIter = 100; gamma = 0.5; beta = 0.25
-        numIncrMax      = 30000; incrMin = 1e-5
+        numIncrMax = 30000; incrMin = 1e-5
+        
+        tolForce    = 1 *N
+        tolDisp     = 0.001 *mm
         
         numIncr     = numIncrInit
         incr        = incrFrac/numIncrInit
@@ -218,9 +221,9 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
             for algorithm in algorithmList:
                 for tester in testerList:
                     if tester == 'NormUnbalance':
-                        tol = 1 *N
+                        tol = tolForce
                     else:
-                        tol = 0.01 *mm
+                        tol = tolDisp
                     ops.test(tester, tol, numIter)
                     ops.algorithm(algorithm)  
                     if typeAnalysis == "NTHA":
@@ -249,10 +252,14 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     print(f"\n=============== THE ALGORITHM {algorithm} FAILED TO CONVERGE!!! ===============")
             if OK == 0: break
             else:
-                if tester == 'NormUnbalance':
-                    tol = min(1.5*tol, 5 *N)
-                else:
-                    tol = min(1.5*tol, 1 *mm)
+                # if tester == 'NormUnbalance':
+                #     # tol = min(1.5*tol, 5 *N)
+                #     tolForce    = min(2 *tolForce, 10 *kN)
+                # else:
+                #     # tol = min(1.5*tol, 1 *mm)
+                #     tolDisp     = min(2 *tolDisp,  5 *mm)
+                tolForce    = min(2 *tolForce, 10 *kN)
+                tolDisp     = min(2 *tolDisp,  5 *mm)
                 remD    = dispTar - curD()[0]
                 if remD >= 0.001:
                     numIncr = int(numIncr*1.001**i + j)
@@ -266,7 +273,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     print("\nIncrement size is too small!!!")
                     t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
                     print(f"\nElapsed time: {mins} min + {secs} sec")
-                    # winsound.Beep(440, 1000)  # generate a 440Hz sound that lasts 500 milliseconds
+                    winsound.Beep(440, 1000)  # generate a 440Hz sound that lasts 500 milliseconds
                     text = " pushover" if typeAnalysis!="NTHA" else ""
                     print("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     print(f"*!*!*!*!*!* The {typeAnalysis}{text} analysis failed to converge!!! *!*!*!*!*!*")
@@ -291,8 +298,8 @@ def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad):
     #   load(nodeTag,     *loadValues)
     if type(tagNodeLoad) == list:
         tagNodeControl  = tagNodeLoad[-1]
-        n_story = len(tagNodeLoad)-1
-        Cvx     = verDistFact(We, T1, h_1, h_typ, n_story)
+        n_story         = len(tagNodeLoad)-1
+        Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
         for i, tagNode in enumerate(tagNodeLoad):
             # ops.load(tagNode, *[i/n_story, 0, 0])
             ops.load(tagNode, *[Cvx[i], 0, 0])
@@ -337,7 +344,7 @@ def calcDrift(tagNodeLoad, tagNodeBase, dofNodeControl):
 def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList):
     t_beg           = time.time()
     T1              = analyzeEigen(3, True)[0]
-    Cvx = verDistFact(We, T1, h_1, h_typ, n_story)
+    Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
     C_V_base        = Sa(T1) /(R /Ie)
     V_base          = C_V_base *We
     dofNodeControl  = 1

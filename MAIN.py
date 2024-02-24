@@ -31,7 +31,7 @@ exertGravityLoad= True
 linearity       = False
 typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
-typeAnalysis    = ['NTHA']             # 'monotonic', 'cyclic', 'NTHA'
+typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
 
 Lw              = Section['wall']['propWeb'][1] + 2*Section['wall']['propFlange'][1]
 PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
@@ -72,10 +72,10 @@ dispTarList     = [
 buildingWidth1=20.; buildingHeight1=17.
 plot_undefo     = False
 plot_loaded     = False
-plot_defo       = False
+plot_defo       = True
 sfac            = 10
     
-plot_MomCurv    = False
+plot_MomCurv    = True
 plot_Analysis   = True
 plot_StressStrain=True
 plot_section    = False
@@ -88,9 +88,9 @@ if recordToLog == True:
 
 numFolder = 1
 for types in typeAnalysis:
-    outputDir       = f'Output/Pushover/{types}/{numFolder}'
-    outputDirWalls  = f'Output/Pushover/{types}/{numFolder}/wall'
-    outputDirBeams  = f'Output/Pushover/{types}/{numFolder}/beams'
+    outputDir       = f'Output/Pushover/{types}/{numFolder:03}'
+    outputDirWalls  = f'Output/Pushover/{types}/{numFolder:03}/wall'
+    outputDirBeams  = f'Output/Pushover/{types}/{numFolder:03}/beams'
     outputDirNTHA   = "Output/NTHA"
     
     os.makedirs(outputDir,      exist_ok=True)

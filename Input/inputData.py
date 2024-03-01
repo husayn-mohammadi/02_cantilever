@@ -16,15 +16,15 @@ Rho     = 1.
 Fi_v = Fi_b = Fi_c = Fi_t = 0.9
 
 # Material
-Es      = 29000 *ksi
-Gs      = 11200 *ksi
-Fy      = 50    *ksi
-Fu      = 65    *ksi
+Es      = 200       *GPa
+Gs      = 77.2      *GPa
+Fy      = 420       *MPa
+Fu      = 470       *MPa
 Ry      = 1.1
 
-fpc     = 6     *ksi
-Ec      = 4500  *ksi
-Gc      = 1800  *ksi
+fpc     = 41.4      *MPa
+Ec      = 31026     *MPa
+Gc      = 12410.6   *MPa
 Rc      = 1.3
 
 linearity = 1
@@ -32,20 +32,20 @@ linearity = 1
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 132   *inch
-H_CB        = 24    *inch
-bf          = 24    *inch
-tw          = 9/16  *inch
+Hw          = 3.3528    *m
+H_CB        = 0.6       *m
+bf          = 0.6096    *m
+tw          = 0.0142875 *m
 RhoW        = 2 *tw /bf
 tf          = tw
 tc          = bf - 2*tw
 t_sc        = tc + 2*tw
-btie        = 12    *inch
-Stie        = 12    *inch
-dtie        = 1     *inch
+btie        = 0.3048    *m # Vertical Spacing
+Stie        = 0.3048    *m # Horizontal Spacing
+dtie        = 0.0254    *m
 lsr         = btie/tw
-t_pfCB      = 0.5   *inch
-t_pwCB      = 0.5   *inch
+t_pfCB      = 0.0127    *m
+t_pwCB      = 0.0127    *m
 
 b           = 114*mm
 NfibeY      = 10
@@ -74,11 +74,11 @@ Section = {
 #=============================================================================
 #    Frame Data:
 #=============================================================================
-n_story         = 2
-H_typical       = 14    *ft
-H_first         = 17    *ft
-LDR_CB          = 4
-L_CB            = LDR_CB * H_CB
+n_story         = 8
+H_typical       = 14        *ft
+H_first         = 17        *ft
+L_CB            = 2.4384    *m
+LDR_CB          = L_CB /H_CB; print(f"{LDR_CB:.3f}")
 L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
 L_Bay_List      = 2*[L_Bay]#, 5.*m, 5.*m, 5.*m]        # [*LBays]
@@ -256,7 +256,7 @@ print(f"M_exp = {M_exp /1000:.1f} kN.m")
 print(f"V_exp = {V_exp /1000:.1f} kN")
 
 # Check Flexure-Criticality Condition
-if V_exp *L_CB /M_exp >= 2.4: 
+if V_exp *L_CB /M_exp >= 2.6: 
     print("Flexure-Criticality Confirmed!")
 
 

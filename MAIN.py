@@ -38,11 +38,11 @@ PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
 PHL_beam        = 2/3 * Section['beam']['propWeb'][1]
 numSegWall      = 3                         # If numSegWall=0, the model will be built only with one linear elastic element connecting the base node to top node
 numSegBeam      = 3
-SBL             = 0.3 *m                   # Length of Shear Link (Shear Beam)
+SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
-incrMono        = 2*((H_typical*n_story)/2000)
+incrMono        = 3*((H_typical*n_story)/4000)
 numIncrInit     = 3
-drift           = 0.01
+drift           = 0.02
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
@@ -77,7 +77,7 @@ sfac            = 10
     
 plot_MomCurv    = True
 plot_Analysis   = True
-plot_StressStrain=True
+plot_StressStrain=False
 plot_section    = False
 #=============================================================================
 #    MAIN

@@ -24,7 +24,7 @@ ops.logFile("logOpenSEES.txt")
 #    Define Variables
 #=============================================================================
 # Modeling Options
-recordToLog     = False                      # True, False
+recordToLog     = True                      # True, False
 modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
@@ -84,7 +84,7 @@ plot_section    = False
 #=============================================================================
 start_time = time.time()
 recVarAvai = "recordToLogIDA" not in globals() or "recordToLogDesign" not in globals()
-print(f"{recVarAvai = }")
+# print(f"{recVarAvai = }")
 if recVarAvai:
     if recordToLog == True:
         sys.stdout = open('logMAIN.txt', 'w')    

@@ -291,6 +291,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
     return OK
 
 def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad): 
+    distributeOnWalls= False
     t_beg           = time.time()
     T1              = analyzeEigen(1)[0]
     dofNodeControl  = 1
@@ -300,12 +301,30 @@ def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad):
     ops.pattern('Plain', tagPatternPlain, tagTSLinear)
     #   load(nodeTag,     *loadValues)
     if type(tagNodeLoad) == list:
-        tagNodeControl  = tagNodeLoad[-1]
-        n_story         = len(tagNodeLoad)-1
-        Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
-        for i, tagNode in enumerate(tagNodeLoad):
-            # ops.load(tagNode, *[i/n_story, 0, 0])
-            ops.load(tagNode, *[Cvx[i], 0, 0])
+        if distributeOnWalls == False:
+            tagNodeControl  = tagNodeLoad[-1]
+            n_story         = len(tagNodeLoad)-1
+            Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
+            for i, tagNode in enumerate(tagNodeLoad):
+                # ops.load(tagNode, *[i/n_story, 0, 0])
+                ops.load(tagNode, *[Cvx[i], 0, 0])
+        else:
+            def tagNodeLoadStory(tagNodeLoad, n_story):
+                tagNodeStory = {}
+                for i in range(1, n_story+1):
+                    tagNodeStory[i] = []
+                    for tagNode in tagNodeLoad:
+                        tagCoordYI  = f"{tagNode}"[1:-3]
+                        if tagCoordYI == f"{i:02}":
+                            tagNodeStory[i].append(tagNode)
+                return tagNodeStory
+            
+            tagNodeControl      = tagNodeLoad[-1]
+            tagNodeLoadStories  = tagNodeLoadStory(tagNodeLoad, n_story)
+            Cvx                 = verDistFact(We, T1, h_1, h_typ, n_story)
+            for story, tagNodeList in tagNodeLoadStories.items():
+                for tagNode in tagNodeList:
+                    ops.load(tagNode, *[Cvx[story -1]/nWalls, 0, 0])
     else:
         tagNodeControl  = tagNodeLoad
         ops.load(tagNodeControl, *[1, 0, 0])

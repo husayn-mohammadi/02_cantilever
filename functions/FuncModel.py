@@ -461,7 +461,9 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, 
     EAeff       = wall.EAeff
     beam.EE     = EIeff
     beam.AA     = EAeff/EIeff
-    compo.defineSection(beam) # This will create the fiber section
+    eMax        = beam.eMax
+    eMin        = beam.eMin
+    print(f"{eMin = }\n{eMax = }")
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     #   Define material and sections

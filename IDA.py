@@ -7,7 +7,9 @@ import functions.FuncAnalysis  as fa
 
 
 start_timeIDA = time.time()
-sys.stdout = open('logIDA.txt', 'w') 
+recordToLogIDA = True
+if recordToLogIDA == True:
+    sys.stdout = open('logIDA.txt', 'w') 
 g = 9.80665
 outputDirIDA = "Output/IDA"
 os.makedirs(outputDirIDA, exist_ok=True)
@@ -94,8 +96,9 @@ print("\n\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 print(f"IDA Finished in {mins}min+{secs}sec.")
 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
 
-sys.stdout.close()
-sys.stdout = sys.__stdout__
+if recordToLogIDA == True:
+    sys.stdout.close()
+    sys.stdout = sys.__stdout__
 
     # scaleFactorList = [ 
     #                     20.*scaleFactor,

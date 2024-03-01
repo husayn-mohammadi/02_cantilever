@@ -1,10 +1,12 @@
-import sys
+import sys, time
 # import pandas as pd
 import numpy as np
 import functions.FuncAnalysis  as fa
 exec(open("Input/unitsSI.py").read()) 
 # exec(open("Input/inputData.py").read()) 
-sys.stdout = open("logDesign.txt", 'w') 
+recordToLogDesign = True
+if recordToLogDesign == True:
+    sys.stdout = open("logDesign.txt", 'w') 
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 1: Input Data
@@ -170,13 +172,18 @@ sys.stdout = open("logDesign.txt", 'w')
 # if V_exp *L_CB /M_exp >= 2.4: 
 #     print("Flexure-Criticality Confirmed!")
 
-
+numSign = 65
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 2: Analysis for Design
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 fa.replace_line('MAIN.py', 31, "linearity       = True")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
+t_EAna_i    = time.time()
+print(f"{'='*numSign}\nElastic Analysis Started.\n{'='*numSign}\n")
 exec(open("MAIN.py").read()) 
+t_EAna_f    = time.time()
+dur_EAna    = (t_EAna_f - t_EAna_i)/60
+print(f"{'='*numSign}\nElastic Analysis Finished in {dur_EAna:.2f} mins.\n{'='*numSign}\n")
 # Effective distance between wall centroids
 L_eff   = L_CB +Lw
 
@@ -306,7 +313,12 @@ print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 # EIeff_Com   = 1.81e10 *kip*inch **2
 fa.replace_line('MAIN.py', 31, "linearity       = False")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
+t_IEAna_i   = time.time()
+print(f"{'='*numSign}\nInelastic Analysis Started.\n{'='*numSign}\n")
 exec(open("MAIN.py").read()) 
+t_IEAna_f   = time.time()
+dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60
+print(f"{'='*numSign}\nInelastic Analysis Finished in {dur_IEAna:.2f} mins.\n{'='*numSign}\n")
 EIeff_Ten   = EIeff_walls[0]
 EIeff_Com   = EIeff_walls[1]
 
@@ -470,6 +482,6 @@ print(f"Coupling Ratio = {R__coupling*100:.1f}%")
 
 
 
-
-sys.stdout.close()
-sys.stdout = sys.__stdout__
+if recordToLogDesign == True:
+    sys.stdout.close()
+    sys.stdout = sys.__stdout__

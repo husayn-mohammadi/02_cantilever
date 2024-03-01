@@ -175,7 +175,7 @@ class compo:
         
                     
         
-    def defineSection(self):
+    def defineSection(self, plot_section):
         
         # Define Fiber Section For Testing
         GJ = 1e8
@@ -215,7 +215,7 @@ class compo:
         ops.patch('rect', self.tagMatCtUnconf,  self.NfibeY*times1, NfibeZ, *crdsI6, *crdsJ6) #Concrete Core mid
         ops.patch('rect', self.tagMatCtConf,    self.NfibeY*times2, NfibeZ, *crdsI7, *crdsJ7) #Concrete Core top
         
-        if 0: # Do you want to plot the section? (1/0)
+        if plot_section == False: # True , False
             # this part of the code is just to sent out a varibale for plotting the fiber section
             fib_sec = [['section', 'Fiber', self.tagSec, '-GJ', GJ],
     

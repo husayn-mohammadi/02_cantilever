@@ -443,7 +443,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, 
     EAeff       = wall.EAeff; k_elo = 20*EAeff/y; print(f"k_elo = {k_elo}"); ops.uniaxialMaterial('Elastic',   100003, k_elo) # 4* is to consider 12EI/L instead of 3EI/L
     wall.EE     = EIeff
     wall.AA     = EAeff/EIeff
-    compo.defineSection(wall) # This will create the fiber section
+    compo.defineSection(wall, plot_section=True) # This will create the fiber section
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     NIP         = 7
@@ -464,6 +464,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, 
     eMax        = beam.eMax
     eMin        = beam.eMin
     print(f"{eMin = }\n{eMax = }")
+    compo.defineSection(beam, plot_section=True) # This will create the fiber section
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     #   Define material and sections

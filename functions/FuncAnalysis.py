@@ -204,18 +204,18 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
             print(f"Incr\t\t\t= {incr}")
     
     for iii in range(1, numFrac+1):
-        dispTar = iii * incrFrac
+        dispTar         = iii * incrFrac
         testerList      = ['NormDispIncr', 'NormUnbalance', 'EnergyIncr', ]#, 'RelativeNormUnbalance']
         algorithmList   = [*(1*['Newton', 'KrylovNewton', 'RaphsonNewton', 'NewtonLineSearch 0.65', ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
         numIter = 100; gamma = 0.5; beta = 0.25
         numIncrMax = 30000; incrMin = 1e-5
         
-        tolForce    = 1 *N
-        tolDisp     = 0.001 *mm
+        tolForce    = 0.1 *N
+        tolDisp     = 0.0001 *mm
         
         numIncr     = numIncrInit
         incr        = incrFrac/numIncrInit
-        j = 1
+        j = 1; jj = 1
         for i in range(100000000):
         
             for algorithm in algorithmList:
@@ -260,16 +260,19 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 #     tolDisp     = min(2 *tolDisp,  5 *mm)
                 tolForce    = min(2 *tolForce, 10 *kN)
                 tolDisp     = min(2 *tolDisp,  5 *mm)
-                remD    = dispTar - curD()[0]
-                if remD >= 0.001:
+                remD    = dispTar - curD()[0]; print(f"{remD = }")
+                if remD >= 0.0001:
                     numIncr = int(numIncr*1.001**i + j)
-                    j += 1
+                    j       += 1; print(f"{j = }")
                     incr    = remD/numIncr
                 else:
-                    numIncr = 1
+                    OK      = 1
+                    break
+                    numIncr = 2
                     incr    = remD/numIncr
+                    jj      += 1; print(f"{jj = }")
                 msgReducingIncrSize()
-                if numIncr >= numIncrMax or incr <= incrMin:
+                if numIncr >= numIncrMax or incr <= incrMin or jj>20:
                     print("\nIncrement size is too small!!!")
                     t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
                     print(f"\nElapsed time: {mins} min + {secs} sec")

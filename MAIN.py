@@ -19,7 +19,7 @@ import numpy                   as np
 exec(open("Input/unitsSI.py").read())       # This determines the OUTPUT units: unitsUS.py/unitsSI.py
 exec(open('Input/inputData.py').read())
 # exec(open("Input/materialParameters.py").read())
-ops.logFile("logFile.txt")
+ops.logFile("logOpenSEES.txt")
 #=============================================================================
 #    Define Variables
 #=============================================================================
@@ -83,8 +83,11 @@ plot_section    = False
 #    MAIN
 #=============================================================================
 start_time = time.time()
-if recordToLog == True:
-    sys.stdout = open('log.txt', 'w')    
+recVarAvai = "recordToLogIDA" not in globals() or "recordToLogDesign" not in globals()
+print(f"{recVarAvai = }")
+if recVarAvai:
+    if recordToLog == True:
+        sys.stdout = open('logMAIN.txt', 'w')    
 
 numFolder = 1
 for types in typeAnalysis:
@@ -267,10 +270,10 @@ print("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 print("The analysis was run successfully.")
 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
-
-if recordToLog == True:
-    sys.stdout.close()
-    sys.stdout = sys.__stdout__
+if recVarAvai:
+    if recordToLog == True:
+        sys.stdout.close()
+        sys.stdout = sys.__stdout__
 
 winsound.Beep(440, 300)  # generate a 440Hz sound that lasts 300 milliseconds
 winsound.Beep(440, 300)

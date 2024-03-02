@@ -193,7 +193,7 @@ ID_allowable = 0.02 # for example here for Risk Category II.
 IDe     = driftMaximum
 ID = IDe *Cd
 if ID > ID_allowable:
-    print(f"ID = {ID*100:.5f}% which is greater than {ID_allowable*100}%\nProgram exits here!"); #sys.exit()
+    print(f"ID = {ID*100:.5f}% which is greater than {ID_allowable*100}%\nProgram exits here!"); sys.exit()
 else:
     print(f"ID = {ID*100:.5f}%")
 
@@ -424,7 +424,7 @@ if R__P_Twall > 1.0:
 elif 0.95 < R__P_Twall <= 1.0:
     print("The Available Tensile Strength of Tension Wall is OK")
 else:
-    print(f"The Available Tensile Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Twall:.2f}")
+    print(f"The Available Tensile Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Twall*100:.1f}%")
 
 
 # a.2)  Compressive Strength
@@ -434,7 +434,7 @@ if R__P_Cwall > 1.0:
 elif 0.95 < R__P_Cwall <= 1.0:
     print("The Available Compressive Strength of Compression Wall is OK")
 else:
-    print(f"The Available Compressive Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Cwall:.2f}")
+    print(f"The Available Compressive Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Cwall*100:.1f}%")
 
 # b)    Shear Strength
 R__V_wall   = Vu /Vn_Fi_v
@@ -443,7 +443,7 @@ if R__V_wall > 1.0:
 elif 0.95 < R__V_wall <= 1.0:
     print("The Available Shear Strength of Walls is OK")
 else:
-    print(f"The Available Shear Strength of Walls is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__V_wall:.2f}")
+    print(f"The Available Shear Strength of Walls is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__V_wall*100:.1f}%")
 
 # c)    Flextural Strength
 # c.1)  Flexural Strength of Tension SpeedCore Wall
@@ -453,7 +453,7 @@ if R_M_Twall > 1.0:
 elif 0.95 < R_M_Twall <= 1.0:
     print("The Available Flexural Strength of Tension Wall is OK")
 else:
-    print(f"The Available Flexural Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R_M_Twall:.2f}")
+    print(f"The Available Flexural Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R_M_Twall*100:.1f}%")
 
 # c.2)  Flexural Strength of Compression SpeedCore Wall
 R__M_Cwall   = Mu_C/Mn_C_Fi_b
@@ -462,7 +462,7 @@ if R__M_Cwall > 1.0:
 elif 0.95 < R__M_Cwall <= 1.0:
     print("The Available Flexural Strength of Compression Wall is OK")
 else:
-    print(f"The Available Flexural Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__M_Cwall:.2f}")
+    print(f"The Available Flexural Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__M_Cwall*100:.1f}%")
 
 
 

@@ -24,7 +24,7 @@ ops.logFile("logOpenSEES.txt")
 #    Define Variables
 #=============================================================================
 # Modeling Options
-recordToLog     = True                      # True, False
+recordToLog     = False                      # True, False
 modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True

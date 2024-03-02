@@ -146,11 +146,11 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                         dispBot = ops.nodeDisp(tagNodePrv, dofNodeControl)
                         # print(f"dispBot = {dispBot}")
                         drift.append(abs(dispTop - dispBot)/height)
-                        print(f"drift[{i}] = {drift[i-1] *100} %")
+                        # print(f"drift[{i}] = {drift[i-1] *100} %")
                     tagNodePrv = tagNode
                     # print(f"tagNodePrv = {tagNodePrv}")
                 driftMax = max(drift)
-                print(f"driftMax = {driftMax *100} %")
+                # print(f"driftMax = {driftMax *100} %")
             else:
                 height  = ops.nodeCoord(tagNodeLoad)[1] - ops.nodeCoord(tagNodeBase)[1]
                 dispTop = ops.nodeDisp(tagNodeLoad, dofNodeControl)

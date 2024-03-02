@@ -74,7 +74,7 @@ Section = {
 #=============================================================================
 #    Frame Data:
 #=============================================================================
-n_story         = 3
+n_story         = 8
 H_typical       = 14        *ft
 H_first         = 17        *ft
 L_CB            = 2.4384    *m
@@ -100,7 +100,7 @@ Pno             = 12776238.963599999 *N
 ALR             = 0.02  # Axial Load Ratio
 Py              = ALR * Pno
 #   Frame Loads
-load={}
+load            ={}
 DL_Floor        = 0.12  *ksf #90 *psf
 DL_PWalls       = 0 #25 *psf
 LL_Floor        = 0 #50 *psf

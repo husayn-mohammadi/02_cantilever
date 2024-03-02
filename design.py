@@ -1,10 +1,12 @@
-import sys
+import sys, time
 # import pandas as pd
 import numpy as np
 import functions.FuncAnalysis  as fa
 exec(open("Input/unitsSI.py").read()) 
 # exec(open("Input/inputData.py").read()) 
-sys.stdout = open("logDesign.txt", 'w') 
+recordToLogDesign = True
+if recordToLogDesign == True:
+    sys.stdout = open("logDesign.txt", 'w') 
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 1: Input Data
@@ -170,13 +172,18 @@ sys.stdout = open("logDesign.txt", 'w')
 # if V_exp *L_CB /M_exp >= 2.4: 
 #     print("Flexure-Criticality Confirmed!")
 
-
+numSign = 65
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 2: Analysis for Design
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 fa.replace_line('MAIN.py', 31, "linearity       = True")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
+t_EAna_i    = time.time()
+print(f"{'='*numSign}\nElastic Analysis Started.\n{'='*numSign}\n")
 exec(open("MAIN.py").read()) 
+t_EAna_f    = time.time()
+dur_EAna    = (t_EAna_f - t_EAna_i)/60
+print(f"{'='*numSign}\nElastic Analysis Finished in {dur_EAna:.2f} mins.\n{'='*numSign}\n")
 # Effective distance between wall centroids
 L_eff   = L_CB +Lw
 
@@ -186,7 +193,7 @@ ID_allowable = 0.02 # for example here for Risk Category II.
 IDe     = driftMaximum
 ID = IDe *Cd
 if ID > ID_allowable:
-    print(f"ID = {ID*100:.5f}% which is greater than {ID_allowable*100}%\nProgram exits here!"); #sys.exit()
+    print(f"ID = {ID*100:.5f}% which is greater than {ID_allowable*100}%\nProgram exits here!"); sys.exit()
 else:
     print(f"ID = {ID*100:.5f}%")
 
@@ -306,7 +313,12 @@ print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 # EIeff_Com   = 1.81e10 *kip*inch **2
 fa.replace_line('MAIN.py', 31, "linearity       = False")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
+t_IEAna_i   = time.time()
+print(f"{'='*numSign}\nInelastic Analysis Started.\n{'='*numSign}\n")
 exec(open("MAIN.py").read()) 
+t_IEAna_f   = time.time()
+dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60
+print(f"{'='*numSign}\nInelastic Analysis Finished in {dur_IEAna:.2f} mins.\n{'='*numSign}\n")
 EIeff_Ten   = EIeff_walls[0]
 EIeff_Com   = EIeff_walls[1]
 
@@ -412,7 +424,7 @@ if R__P_Twall > 1.0:
 elif 0.95 < R__P_Twall <= 1.0:
     print("The Available Tensile Strength of Tension Wall is OK")
 else:
-    print(f"The Available Tensile Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Twall:.2f}")
+    print(f"The Available Tensile Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Twall*100:.1f}%")
 
 
 # a.2)  Compressive Strength
@@ -422,7 +434,7 @@ if R__P_Cwall > 1.0:
 elif 0.95 < R__P_Cwall <= 1.0:
     print("The Available Compressive Strength of Compression Wall is OK")
 else:
-    print(f"The Available Compressive Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Cwall:.2f}")
+    print(f"The Available Compressive Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Cwall*100:.1f}%")
 
 # b)    Shear Strength
 R__V_wall   = Vu /Vn_Fi_v
@@ -431,7 +443,7 @@ if R__V_wall > 1.0:
 elif 0.95 < R__V_wall <= 1.0:
     print("The Available Shear Strength of Walls is OK")
 else:
-    print(f"The Available Shear Strength of Walls is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__V_wall:.2f}")
+    print(f"The Available Shear Strength of Walls is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__V_wall*100:.1f}%")
 
 # c)    Flextural Strength
 # c.1)  Flexural Strength of Tension SpeedCore Wall
@@ -441,7 +453,7 @@ if R_M_Twall > 1.0:
 elif 0.95 < R_M_Twall <= 1.0:
     print("The Available Flexural Strength of Tension Wall is OK")
 else:
-    print(f"The Available Flexural Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R_M_Twall:.2f}")
+    print(f"The Available Flexural Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R_M_Twall*100:.1f}%")
 
 # c.2)  Flexural Strength of Compression SpeedCore Wall
 R__M_Cwall   = Mu_C/Mn_C_Fi_b
@@ -450,7 +462,7 @@ if R__M_Cwall > 1.0:
 elif 0.95 < R__M_Cwall <= 1.0:
     print("The Available Flexural Strength of Compression Wall is OK")
 else:
-    print(f"The Available Flexural Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__M_Cwall:.2f}")
+    print(f"The Available Flexural Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__M_Cwall*100:.1f}%")
 
 
 
@@ -470,6 +482,6 @@ print(f"Coupling Ratio = {R__coupling*100:.1f}%")
 
 
 
-
-sys.stdout.close()
-sys.stdout = sys.__stdout__
+if recordToLogDesign == True:
+    sys.stdout.close()
+    sys.stdout = sys.__stdout__

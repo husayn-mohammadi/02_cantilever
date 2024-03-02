@@ -146,11 +146,11 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                         dispBot = ops.nodeDisp(tagNodePrv, dofNodeControl)
                         # print(f"dispBot = {dispBot}")
                         drift.append(abs(dispTop - dispBot)/height)
-                        print(f"drift[{i}] = {drift[i-1] *100} %")
+                        # print(f"drift[{i}] = {drift[i-1] *100} %")
                     tagNodePrv = tagNode
                     # print(f"tagNodePrv = {tagNodePrv}")
                 driftMax = max(drift)
-                print(f"driftMax = {driftMax *100} %")
+                # print(f"driftMax = {driftMax *100} %")
             else:
                 height  = ops.nodeCoord(tagNodeLoad)[1] - ops.nodeCoord(tagNodeBase)[1]
                 dispTop = ops.nodeDisp(tagNodeLoad, dofNodeControl)
@@ -204,18 +204,18 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
             print(f"Incr\t\t\t= {incr}")
     
     for iii in range(1, numFrac+1):
-        dispTar = iii * incrFrac
+        dispTar         = iii * incrFrac
         testerList      = ['NormDispIncr', 'NormUnbalance', 'EnergyIncr', ]#, 'RelativeNormUnbalance']
         algorithmList   = [*(1*['Newton', 'KrylovNewton', 'RaphsonNewton', 'NewtonLineSearch 0.65', ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
         numIter = 100; gamma = 0.5; beta = 0.25
         numIncrMax = 30000; incrMin = 1e-5
         
-        tolForce    = 1 *N
-        tolDisp     = 0.001 *mm
+        tolForce    = 0.1 *N
+        tolDisp     = 0.0001 *mm
         
         numIncr     = numIncrInit
         incr        = incrFrac/numIncrInit
-        j = 1
+        j = 1; jj = 1
         for i in range(100000000):
         
             for algorithm in algorithmList:
@@ -260,16 +260,19 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 #     tolDisp     = min(2 *tolDisp,  5 *mm)
                 tolForce    = min(2 *tolForce, 10 *kN)
                 tolDisp     = min(2 *tolDisp,  5 *mm)
-                remD    = dispTar - curD()[0]
-                if remD >= 0.001:
+                remD    = dispTar - curD()[0]; print(f"{remD = }")
+                if remD >= 0.0001:
                     numIncr = int(numIncr*1.001**i + j)
-                    j += 1
+                    j       += 1; print(f"{j = }")
                     incr    = remD/numIncr
                 else:
-                    numIncr = 1
+                    OK      = 1
+                    break
+                    numIncr = 2
                     incr    = remD/numIncr
+                    jj      += 1; print(f"{jj = }")
                 msgReducingIncrSize()
-                if numIncr >= numIncrMax or incr <= incrMin:
+                if numIncr >= numIncrMax or incr <= incrMin or jj>20:
                     print("\nIncrement size is too small!!!")
                     t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
                     print(f"\nElapsed time: {mins} min + {secs} sec")
@@ -287,7 +290,8 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 break
     return OK
 
-def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad): 
+def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2): 
+    distributeOnWalls= True
     t_beg           = time.time()
     T1              = analyzeEigen(1)[0]
     dofNodeControl  = 1
@@ -297,12 +301,32 @@ def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad):
     ops.pattern('Plain', tagPatternPlain, tagTSLinear)
     #   load(nodeTag,     *loadValues)
     if type(tagNodeLoad) == list:
-        tagNodeControl  = tagNodeLoad[-1]
-        n_story         = len(tagNodeLoad)-1
-        Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
-        for i, tagNode in enumerate(tagNodeLoad):
-            # ops.load(tagNode, *[i/n_story, 0, 0])
-            ops.load(tagNode, *[Cvx[i], 0, 0])
+        if distributeOnWalls == False:
+            tagNodeControl  = tagNodeLoad[-1]
+            n_story         = len(tagNodeLoad)-1
+            Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
+            for i, tagNode in enumerate(tagNodeLoad):
+                # ops.load(tagNode, *[i/n_story, 0, 0])
+                ops.load(tagNode, *[Cvx[i], 0, 0])
+        else:
+            def tagNodeLoadStory(tagNodeLoad, n_story):
+                tagNodeStory        = {}
+                for i in range(1, n_story+1):
+                    tagNodeStory[i] = []
+                    for tagNode in tagNodeLoad:
+                        tagCoordYI  = f"{tagNode}"[1:-3]
+                        if tagCoordYI == f"{i:02}":
+                            tagNodeStory[i].append(tagNode)
+                return tagNodeStory
+            
+            tagNodeControl      = tagNodeLoad[-1]
+            nWalls              = 2
+            n_story             = int(len(tagNodeLoad2)/nWalls)
+            tagNodeLoadStories  = tagNodeLoadStory(tagNodeLoad2, n_story)
+            Cvx                 = verDistFact(We, T1, h_1, h_typ, n_story)
+            for story, tagNodeList in tagNodeLoadStories.items():
+                for tagNode in tagNodeList:
+                    ops.load(tagNode, *[Cvx[story]/nWalls, 0, 0])
     else:
         tagNodeControl  = tagNodeLoad
         ops.load(tagNodeControl, *[1, 0, 0])

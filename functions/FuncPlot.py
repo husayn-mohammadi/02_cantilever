@@ -158,42 +158,7 @@ def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, scaleFactor, SaGM,
     return driftMax
     
 def interpolate(Xp, x, y):
-# def interpolate(X, list_X, list_Y):
-    # # Checks
-    # X_min   = min(list_X)
-    # X_max   = max(list_X)
-    # # if X > X_max or X<X_min:
-    # #     print(f"X is out of bounds!!!\nX = {X}\nX_min = {X_min}\nX_max = {X_max}"); sys.exit()
-    # length_X    = len(list_X)
-    # length_Y    = len(list_Y)
-    # if length_X < 2 or length_Y < 2:
-    #     print("Your list of points contains less than 2 points!!!\The program exits!!!"); sys.exit()
-    # if length_X == length_Y:
-    #     length  = length_X
-    # else:
-    #     print(f"length_X != length_Y:\nlength_X = {length_X} \nlength_Y = {length_Y}")
-    #     if length_X < length_Y:
-    #         length  = length_X
-    #         print("interpolation will go on based on minLength: length_X")
-    #     else:
-    #         length  = length_Y
-    #         print("interpolation will go on based on minLength: length_Y")
-    
-    # # Interpolate
-    # for i in range(1, length):
-    #     Xi = list_X[-i]
-    #     Xj = list_X[-i-1]
-    #     if Xi < Xj:
-    #         if Xi <= X and Xj >= X:
-    #             Yi  = list_Y[list_X.index(Xi)]
-    #             Yj  = list_Y[list_X.index(Xj)]
-    #             Xij = [Xi, Xj]
-    #             Yij = [Yi, Yj]
-    #             interpolator = interp1d(Xij, Yij)
-    #             Y   = interpolator(X)
-    #             return Y
-    #             print(Y)
-    #             break
+
     results = []
     if len(x) > 2:
         for i in range(len(x) - 1):
@@ -203,15 +168,7 @@ def interpolate(Xp, x, y):
             elif x[i] > x[i + 1] and x[i] >= Xp >= x[i + 1]:
                 Yp = y[i] + (y[i + 1] - y[i]) * (Xp - x[i]) / (x[i + 1] - x[i])
                 results.append(Yp)
-        # if x[-1] == Xp:  # Include the last point if it matches Xp
-        #     results.append(y[-1])
-        # elif Xp > x[-1]:  # Handle case where Xp is greater than the maximum x value
-        #     results.append(y[-1] + (Xp - x[-1]) * (y[-1] - y[-2]) / (x[-1] - x[-2]))
-        # return results
-        # if x[0] == Xp:  # Include the last point if it matches Xp
-        #     results.append(y[0])
-        # elif Xp < x[0]:  # Handle case where Xp is greater than the maximum x value
-        #     results.append(y[-1] + (Xp - x[-1]) * (y[-1] - y[-2]) / (x[-1] - x[-2]))
+                
     elif len(x) == 1:
         Yp = y[0]
         results.append(Yp)
@@ -275,7 +232,8 @@ def plotMomCurv(outputDir, tagEle, section, typeBuild):
     h           = section.Hw + section.tw
     curvature   = ((StrainTop -StrainBot)
                    /h)
-    curAtM60per = np.interp(Mpeak60perc, moment, curvature)
+    # curAtM60per = np.interp(Mpeak60perc, moment, curvature)
+    curAtM60per = interpolate(Mpeak60perc, moment, curvature)
     EI          = Mpeak60perc /curAtM60per
     curAtMpeakE = 1/EI *Mpeak
     MomCurv     = np.column_stack((curvature, moment))

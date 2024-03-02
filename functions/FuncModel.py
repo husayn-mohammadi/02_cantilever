@@ -443,7 +443,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, 
     EAeff       = wall.EAeff; k_elo = 20*EAeff/y; print(f"k_elo = {k_elo}"); ops.uniaxialMaterial('Elastic',   100003, k_elo) # 4* is to consider 12EI/L instead of 3EI/L
     wall.EE     = EIeff
     wall.AA     = EAeff/EIeff
-    compo.defineSection(wall) # This will create the fiber section
+    compo.defineSection(wall, plot_section=True) # This will create the fiber section
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     NIP         = 7
@@ -453,7 +453,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, 
     propFlange  = Section[nameSect]['propFlange']
     propCore    = Section[nameSect]['propCore']
     #beam       = compo("beam", *tags, P, lsr, b,     NfibeY, *propWeb, *propFlange, *propCore)
-    beam        = compo("beam", *tags, 0, lsr, 0.114, NfibeY, *propWeb, *propFlange, *propCore, linearity)
+    beam        = compo("beam", *tags, 0, lsr, 0.114, 5*NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(beam)
     EIeff       = wall.EIeff; k_rot = 4*20*EIeff/L_CB; print(f"k_rot2 = {k_rot}"); ops.uniaxialMaterial('Elastic',   100001, k_rot)
     Av          = beam.St_web.A; G=beam.St_web.Es/(2*(1+0.3)); k_trans=20*2*G*Av/SBL/10; b1=0.003; R0,cR1,cR2= 18.5, 0.9, 0.1; a1=a3= 0.06; a2=a4= 1.0; Vp=0.6*beam.St_web.Fy*Av; 
@@ -461,7 +461,10 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, 
     EAeff       = wall.EAeff
     beam.EE     = EIeff
     beam.AA     = EAeff/EIeff
-    compo.defineSection(beam) # This will create the fiber section
+    eMax        = beam.eMax
+    eMin        = beam.eMin
+    print(f"{eMin = }\n{eMax = }")
+    compo.defineSection(beam, plot_section=True) # This will create the fiber section
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     #   Define material and sections

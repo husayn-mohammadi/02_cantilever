@@ -62,7 +62,7 @@ class compo:
         self.Hc2        = Hc2 = (tc + 2*tw)/2           # Height of   confined concrete i.e. Region 2 in documentation # Masoumeh Asgharpoor
         self.Hc1        = Hc1 = Hw - 2*Hc2   # Height of unconfined concrete i.e. Region 1 in documentation
         if Hc1 < 0:
-            print(f"Hw is {Hw}, but it cannot be less than {tc + 2*tw}"); sys.exit()
+            print(f"Hw is {Hw}, but it cannot be less than {tc + 2*tw}"); #sys.exit()
         self.St_web.A   = 2*(tw*Hw)
         self.St_flange.A= 2*(tf*Bf)
         self.Ct_unconf.A= self.Hc1 * tc
@@ -175,9 +175,9 @@ class compo:
         
                     
         
-    def defineSection(self):
+    def defineSection(self, plot_section):
         
-        # Define Fiber Section For Testing
+        # Define Fiber Section
         GJ = 1e8
         # Section Geometry
         ##  Bottom Flange
@@ -192,14 +192,20 @@ class compo:
         ##  Right Web       
         crdsI3 = [-self.Hw/2            ,   self.tc/2           ]
         crdsJ3 = [ self.Hw/2            ,  (self.tc/2 + self.tw)]
-        ##  Concrete Core - Unconfined
-        crdsI6 = [-self.Hc1/2           , -self.tc/2            ]
-        crdsJ6 = [ self.Hc1/2           ,  self.tc/2            ]
-        ##  Concrete Core - Confined        
-        crdsI5 = [-self.Hw/2            , -self.tc/2            ]
-        crdsJ5 = [-self.Hc1/2           ,  self.tc/2            ]
-        crdsI7 = [ self.Hc1/2           , -self.tc/2            ]
-        crdsJ7 = [ self.Hw/2            ,  self.tc/2            ]
+        if self.Hw > 2 *self.Hc2:
+            ##  Concrete Core - Confined        
+            crdsI5 = [-self.Hw/2            , -self.tc/2            ]
+            crdsJ5 = [-self.Hc1/2           ,  self.tc/2            ]
+            crdsI7 = [ self.Hc1/2           , -self.tc/2            ]
+            crdsJ7 = [ self.Hw/2            ,  self.tc/2            ]
+            ##  Concrete Core - Unconfined
+            crdsI6 = [-self.Hc1/2           , -self.tc/2            ]
+            crdsJ6 = [ self.Hc1/2           ,  self.tc/2            ]
+        else:
+            ##  Concrete Core - Confined        
+            crdsI5 = [-self.Hw/2            , -self.tc/2            ]
+            crdsJ5 = [ self.Hw/2            ,  self.tc/2            ]
+            
         
         divider= 5
         times  = max(1, int((self.Hw/self.tf)               /(divider)))
@@ -211,11 +217,14 @@ class compo:
         ops.patch('rect', self.tagMatStFlange,  self.NfibeY,        NfibeZ, *crdsI4, *crdsJ4) #Top Flange
         ops.patch('rect', self.tagMatStWeb,     self.NfibeY*times,       1, *crdsI2, *crdsJ2) #Left Web
         ops.patch('rect', self.tagMatStWeb,     self.NfibeY*times,       1, *crdsI3, *crdsJ3) #Right Web
-        ops.patch('rect', self.tagMatCtConf,    self.NfibeY*times2, NfibeZ, *crdsI5, *crdsJ5) #Concrete Core bot
-        ops.patch('rect', self.tagMatCtUnconf,  self.NfibeY*times1, NfibeZ, *crdsI6, *crdsJ6) #Concrete Core mid
-        ops.patch('rect', self.tagMatCtConf,    self.NfibeY*times2, NfibeZ, *crdsI7, *crdsJ7) #Concrete Core top
+        if self.Hw > 2 *self.Hc2:
+            ops.patch('rect', self.tagMatCtConf,    self.NfibeY*times2, NfibeZ, *crdsI5, *crdsJ5) #Concrete Core bot
+            ops.patch('rect', self.tagMatCtUnconf,  self.NfibeY*times1, NfibeZ, *crdsI6, *crdsJ6) #Concrete Core mid
+            ops.patch('rect', self.tagMatCtConf,    self.NfibeY*times2, NfibeZ, *crdsI7, *crdsJ7) #Concrete Core top
+        else:
+            ops.patch('rect', self.tagMatCtConf,  2*self.NfibeY*times2, NfibeZ, *crdsI5, *crdsJ5) #Concrete Core bot
         
-        if 0: # Do you want to plot the section? (1/0)
+        if plot_section == False: # True , False
             # this part of the code is just to sent out a varibale for plotting the fiber section
             fib_sec = [['section', 'Fiber', self.tagSec, '-GJ', GJ],
     
@@ -235,7 +244,7 @@ class compo:
         
         
     def printVar(self):
-        print(f"ALR\t\t= {self.ALR:.5f}")
+        print(f"ALR\t\t= {self.ALR*100:.3f}%")
         print(f"Es\t\t= {self.Es/GPa:.0f} GPa")
         print(f"Esh\t\t= {self.Esh/GPa:.0f} GPa")
         print(f"Fy\t\t= {self.Fy/MPa:.2f} MPa")

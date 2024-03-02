@@ -19,7 +19,7 @@ import numpy                   as np
 exec(open("Input/unitsSI.py").read())       # This determines the OUTPUT units: unitsUS.py/unitsSI.py
 exec(open('Input/inputData.py').read())
 # exec(open("Input/materialParameters.py").read())
-ops.logFile("logFile.txt")
+ops.logFile("logOpenSEES.txt")
 #=============================================================================
 #    Define Variables
 #=============================================================================
@@ -38,11 +38,11 @@ PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
 PHL_beam        = 2/3 * Section['beam']['propWeb'][1]
 numSegWall      = 3                         # If numSegWall=0, the model will be built only with one linear elastic element connecting the base node to top node
 numSegBeam      = 3
-SBL             = 0.3 *m                   # Length of Shear Link (Shear Beam)
+SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
-incrMono        = 2*((H_typical*n_story)/2000)
+incrMono        = 3*((H_typical*n_story)/4000)
 numIncrInit     = 3
-drift           = 0.01
+drift           = 0.02
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
@@ -71,20 +71,23 @@ dispTarList     = [
 # Plotting Options:
 buildingWidth1=20.; buildingHeight1=17.
 plot_undefo     = False
-plot_loaded     = False
+plot_loaded     = True
 plot_defo       = True
 sfac            = 10
     
 plot_MomCurv    = True
 plot_Analysis   = True
-plot_StressStrain=True
+plot_StressStrain=False
 plot_section    = False
 #=============================================================================
 #    MAIN
 #=============================================================================
 start_time = time.time()
-if recordToLog == True:
-    sys.stdout = open('log.txt', 'w')    
+recVarAvai = "recordToLogIDA" not in globals() or "recordToLogDesign" not in globals()
+# print(f"{recVarAvai = }")
+if recVarAvai:
+    if recordToLog == True:
+        sys.stdout = open('logMAIN.txt', 'w')    
 
 numFolder = 1
 for types in typeAnalysis:
@@ -151,7 +154,7 @@ for types in typeAnalysis:
             print("\n\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
             print(f"Monotonic Pushover Analysis Initiated at {(start_time_monotonic - start_time):.0f}sec.")
             print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
-            fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl)
+            fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl, tagNodeLoad['wall'])
             finish_time_monotonic = time.time()
             mins = int((finish_time_monotonic - start_time_monotonic)/60)
             secs = int((finish_time_monotonic - start_time_monotonic)%60)
@@ -267,10 +270,10 @@ print("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 print("The analysis was run successfully.")
 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
-
-if recordToLog == True:
-    sys.stdout.close()
-    sys.stdout = sys.__stdout__
+if recVarAvai:
+    if recordToLog == True:
+        sys.stdout.close()
+        sys.stdout = sys.__stdout__
 
 winsound.Beep(440, 300)  # generate a 440Hz sound that lasts 300 milliseconds
 winsound.Beep(440, 300)

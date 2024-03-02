@@ -290,8 +290,8 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 break
     return OK
 
-def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad): 
-    distributeOnWalls= False
+def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2): 
+    distributeOnWalls= True
     t_beg           = time.time()
     T1              = analyzeEigen(1)[0]
     dofNodeControl  = 1
@@ -310,7 +310,7 @@ def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad):
                 ops.load(tagNode, *[Cvx[i], 0, 0])
         else:
             def tagNodeLoadStory(tagNodeLoad, n_story):
-                tagNodeStory = {}
+                tagNodeStory        = {}
                 for i in range(1, n_story+1):
                     tagNodeStory[i] = []
                     for tagNode in tagNodeLoad:
@@ -320,11 +320,13 @@ def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad):
                 return tagNodeStory
             
             tagNodeControl      = tagNodeLoad[-1]
-            tagNodeLoadStories  = tagNodeLoadStory(tagNodeLoad, n_story)
+            nWalls              = 2
+            n_story             = int(len(tagNodeLoad2)/nWalls)
+            tagNodeLoadStories  = tagNodeLoadStory(tagNodeLoad2, n_story)
             Cvx                 = verDistFact(We, T1, h_1, h_typ, n_story)
             for story, tagNodeList in tagNodeLoadStories.items():
                 for tagNode in tagNodeList:
-                    ops.load(tagNode, *[Cvx[story -1]/nWalls, 0, 0])
+                    ops.load(tagNode, *[Cvx[story]/nWalls, 0, 0])
     else:
         tagNodeControl  = tagNodeLoad
         ops.load(tagNodeControl, *[1, 0, 0])

@@ -232,7 +232,8 @@ def plotMomCurv(outputDir, tagEle, section, typeBuild):
     h           = section.Hw + section.tw
     curvature   = ((StrainTop -StrainBot)
                    /h)
-    curAtM60per = np.interp(Mpeak60perc, moment, curvature)
+    # curAtM60per = np.interp(Mpeak60perc, moment, curvature)
+    curAtM60per = interpolate(Mpeak60perc, moment, curvature)
     EI          = Mpeak60perc /curAtM60per
     curAtMpeakE = 1/EI *Mpeak
     MomCurv     = np.column_stack((curvature, moment))

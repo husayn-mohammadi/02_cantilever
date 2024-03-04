@@ -411,7 +411,7 @@ Mp_C        = (C1_C *(C_C -tw /2) +
 Mn_C        = Mp_C
 Mn_C_Fi_b   = Fi_b *Mn_C
 print(f"Mn_C*Fi_b = {Mn_C_Fi_b /1000:.1f} kN.m")
-
+print("\n")
 
 
 # 4-3   Check Strength Ratios
@@ -419,50 +419,55 @@ print(f"Mn_C*Fi_b = {Mn_C_Fi_b /1000:.1f} kN.m")
 # a)    Axial Strength
 # a.1)  Tensile Strength
 R__P_Twall  = Pu/Pn_T_Fi_t
+print(f"\nR__P_Twall = {R__P_Twall*100:.1f}%")
 if R__P_Twall > 1.0:
     print("The Available Tensile Strength of Tension Wall is NOT OK!!!")
 elif 0.95 < R__P_Twall <= 1.0:
     print("The Available Tensile Strength of Tension Wall is OK")
 else:
-    print(f"The Available Tensile Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Twall*100:.1f}%")
+    print("The Available Tensile Strength of Tension Wall is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R__P_Twall*100:.1f}%")
 
 
 # a.2)  Compressive Strength
 R__P_Cwall  = Pu/Pn_C_Fi_c
+print(f"\nR__P_Cwall = {R__P_Cwall*100:.1f}%")
 if R__P_Cwall > 1.0:
     print("The Available Compressive Strength of Compression Wall is NOT OK!!!")
 elif 0.95 < R__P_Cwall <= 1.0:
     print("The Available Compressive Strength of Compression Wall is OK")
 else:
-    print(f"The Available Compressive Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__P_Cwall*100:.1f}%")
+    print("The Available Compressive Strength of Compression Wall is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R__P_Cwall*100:.1f}%")
 
 # b)    Shear Strength
 R__V_wall   = Vu /Vn_Fi_v
+print(f"\nR__V_wall = {R__V_wall*100:.1f}%")
 if R__V_wall > 1.0:
     print("The Available Shear Strength of Walls is NOT OK!!!")
 elif 0.95 < R__V_wall <= 1.0:
     print("The Available Shear Strength of Walls is OK")
 else:
-    print(f"The Available Shear Strength of Walls is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__V_wall*100:.1f}%")
+    print("The Available Shear Strength of Walls is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R__V_wall*100:.1f}%")
 
 # c)    Flextural Strength
 # c.1)  Flexural Strength of Tension SpeedCore Wall
 R_M_Twall   = Mu_T/Mn_T_Fi_b
+print(f"\nR_M_Twall = {R_M_Twall*100:.1f}%")
 if R_M_Twall > 1.0:
     print("The Available Flexural Strength of Tension Wall is NOT OK!!!")
 elif 0.95 < R_M_Twall <= 1.0:
     print("The Available Flexural Strength of Tension Wall is OK")
 else:
-    print(f"The Available Flexural Strength of Tension Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R_M_Twall*100:.1f}%")
+    print("The Available Flexural Strength of Tension Wall is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R_M_Twall*100:.1f}%")
 
 # c.2)  Flexural Strength of Compression SpeedCore Wall
 R__M_Cwall   = Mu_C/Mn_C_Fi_b
+print(f"\nR__M_Cwall = {R__M_Cwall*100:.1f}%")
 if R__M_Cwall > 1.0:
     print("The Available Flexural Strength of Compression Wall is NOT OK!!!")
 elif 0.95 < R__M_Cwall <= 1.0:
     print("The Available Flexural Strength of Compression Wall is OK")
 else:
-    print(f"The Available Flexural Strength of Compression Wall is OK, but NOT OPTIMUM! \n===>>>Ratio = {R__M_Cwall*100:.1f}%")
+    print("The Available Flexural Strength of Compression Wall is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R__M_Cwall*100:.1f}%")
 
 
 
@@ -475,7 +480,7 @@ M_couplingBeams     = L_eff * Pu
 M_all               = Mu_Both + M_couplingBeams
 R__coupling         = M_couplingBeams /M_all
 
-print(f"Coupling Ratio = {R__coupling*100:.1f}%")
+print(f"\n\nCoupling Ratio = {R__coupling*100:.1f}%")
 
 
 

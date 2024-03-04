@@ -32,7 +32,7 @@ linearity = 1
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 2.8       *m
+Hw          = 3.5       *m
 H_CB        = 0.6       *m
 bf          = 0.6096    *m
 tw          = 0.0142875 *m
@@ -100,10 +100,10 @@ Pno             = 12776238.963599999 *N
 ALR             = 0.02  # Axial Load Ratio
 Py              = ALR * Pno
 #   Frame Loads
-load            ={}
-DL_Floor        = 0.12  *ksf #90 *psf
+load            = {}
+DL_Floor        = 12    *psf #90 *psf
 DL_PWalls       = 0 #25 *psf
-LL_Floor        = 0 #50 *psf
+LL_Floor        = 50    *psf
 LL_Roof         = 0 #20 *psf
 
 ##  Tributary Loading

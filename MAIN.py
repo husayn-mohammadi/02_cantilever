@@ -24,12 +24,12 @@ ops.logFile("logOpenSEES.txt")
 #    Define Variables
 #=============================================================================
 # Modeling Options
-recordToLog     = False                      # True, False
+recordToLog     = True                      # True, False
 modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
 linearity       = False
-typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
+typeBuild       = 'buildBeam'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
 typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
 

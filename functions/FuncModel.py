@@ -147,8 +147,8 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
     
     return tagEleFibRec
 
-def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True):
-        
+def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True, linearity=False):
+    
     #       Define Geometric Transformation
     tagGTLinear = 1
     ops.geomTransf('Linear', tagGTLinear)
@@ -161,13 +161,13 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True):
     propFlange  = Section[nameSect]['propFlange']
     propCore    = Section[nameSect]['propCore']
     #composite  = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
-    composite   = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
+    composite   = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(composite)
     EIeff       = composite.EIeff; k_rot = 20*EIeff/L; print(f"k_rot2 = {k_rot}"); ops.uniaxialMaterial('Elastic',   100001, k_rot)
     EAeff       = composite.EAeff
     composite.EE= EIeff
     composite.AA= EAeff/EIeff
-    compo.defineSection(composite)
+    compo.defineSection(composite, plot_section=True)
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
              
     #       Define Nodes & Elements

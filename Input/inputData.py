@@ -5,6 +5,9 @@ exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open(f"I
 # exec(open("../Input/unitsSI.py").read()) # It SHOULD read and execute exec(open("Input/units    .py").read())
 # exec(open("MAIN.py").readlines()[20]) # It SHOULD read and execute exec(open("Input/materialParameters.py").read())
 
+#=============================================================================
+#    Design Inputs
+#=============================================================================
 # Seismic Coefficients
 Cd      = 5.5
 Ie      = 1.
@@ -15,6 +18,11 @@ Rho     = 1.
 # Composite wall resistance factor
 Fi_v = Fi_b = Fi_c = Fi_t = 0.9
 
+
+
+#=============================================================================
+#    Material Properties
+#=============================================================================
 # Material
 Es      = 200       *GPa
 Gs      = 77.2      *GPa
@@ -28,6 +36,21 @@ Gc      = 12410.6   *MPa
 Rc      = 1.3
 
 linearity = 1
+
+#_______________________IMK+Pinching_Hinge_Properties________________________#
+# K0          = 12 *EIeff /L **3 Should be given in the FuncModel.py
+My_Plus     = 2*12000 *kN*m
+My_Neg      = -1 *My_Plus
+as_Plus     = as_Neg      = 0.01
+FprPos      = FprNeg      = A_pinch     = 0.3
+Lamda_S     = Lamda_C     = Lamda_A     = Lamda_K     = 1.0
+c_S         = c_C         = c_A         = c_K         = 1
+theta_p_Plus= theta_p_Neg = 0.006
+theta_pc_Plus=theta_pc_Neg= 0.03
+theta_u_Plus= theta_u_Neg = 0.3
+Res_Pos     = Res_Neg     = 0.15
+D_Plus      = D_Neg       = 0.2
+
 
 #=============================================================================
 #    Elements

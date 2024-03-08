@@ -5,7 +5,11 @@ import openseespy.opensees     as ops
 # import functions.FuncPlot      as fp
 from functions.ClassComposite import compo
 
-def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, modelFoundation=True, linearity=False, typeEle='dispBeamColumn'):#
+
+#############################################################################################################################
+def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, 
+                     modelFoundation=True, linearity=False, 
+                     typeEle='dispBeamColumn', typeSpring="IMK_Pinching"):#"elastic", "IMK_Pinching"
     
     #       Define Geometric Transformation
     tagGTLinear = 1
@@ -42,20 +46,22 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, modelFoundation=True,
     tagNodeFndn             = 2
     ops.node(tagNodeFndn, 0., 0.)
     
-    ##      Define the node at the top of the nonlinear element
-    tagNodeUpperBound       = 3
-    ops.node(tagNodeUpperBound, 0., PlasticHingeLength)
-    
     ##      Define the top node where the force is applied
     tagNodeTop              = 4
     ops.node(tagNodeTop, 0., L)
 
-
+    #       Define Springs
     if modelFoundation == True:
         ops.equalDOF(tagNodeBase, tagNodeFndn, 1, 2)
-        k_rot       = 20*EIeff/L; print(f"k_rot = {k_rot}"); ops.uniaxialMaterial('Elastic',   100000, k_rot)
-        #   element('zeroLength', eleTag, *eleNodes,                    '-mat', *matTags, '-dir', *dirs)
-        ops.element('zeroLength', 100000, *[tagNodeBase, tagNodeFndn],  '-mat', 100000,   '-dir', 3)
+        if typeSpring == "elastic":
+            k_rot       = 20*EIeff/L; print(f"k_rot = {k_rot}"); ops.uniaxialMaterial('Elastic',   100000, k_rot)
+        elif typeSpring == "IMK_Pinching":
+            K0          = 12 *EIeff /L **1
+            #   uniaxialMaterial('ModIMKPinching', matTag, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
+            ops.uniaxialMaterial('ModIMKPinching', 100000, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
+        
+        #   element('zeroLength', eleTag, *eleNodes,                   '-mat', *matTags, '-dir', *dirs)
+        ops.element('zeroLength', 10000,  *[tagNodeBase, tagNodeFndn], '-mat', 100000,   '-dir', 3)
     else:
         ops.equalDOF(tagNodeBase, tagNodeFndn, 1, 2, 3)
     
@@ -87,12 +93,22 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, modelFoundation=True,
     # ops.element('elasticBeamColumn', numSeg+1, *[numSeg+tagNodeFndn, numSeg + tagNodeFndn + 1], AA, EE, 1, tagGTLinear)
 
 #_____________________________________________________________________________________________________________________
-    ##  Define Nonlinear Elements using Mesh Command
-    meshsize                = PlasticHingeLength/numSeg
-    #  .mesh('line', tag, numnodes, *ndtags,                           id, ndf, meshsize, eleType='',       *eleArgs=[]) The arguments are same as in the element commands, but without element tag, and node tags. For example, eleArgs = ['elasticBeamColumn', A, E, Iz, transfTag]
-    ops.mesh('line', 1,   2,        *[tagNodeFndn, tagNodeUpperBound], 0,  3,   meshsize, 'dispBeamColumn', tagGTPDelta, tags[0])
-
-    ops.element('elasticBeamColumn', 2, *[tagNodeUpperBound, tagNodeTop], AA, EE, 1, tagGTPDelta)
+    if typeSpring == "elastic": # For Distributed-Plasticity Model
+    
+        ##      Define the node at the top of the nonlinear element
+        tagNodeUpperBound       = 3
+        ops.node(tagNodeUpperBound, 0., PlasticHingeLength)
+        
+        ##  Define Nonlinear Elements using Mesh Command
+        meshsize                = PlasticHingeLength/numSeg
+        #  .mesh('line', tag, numnodes, *ndtags,                           id, ndf, meshsize, eleType='',       *eleArgs=[]) The arguments are same as in the element commands, but without element tag, and node tags. For example, eleArgs = ['elasticBeamColumn', A, E, Iz, transfTag]
+        ops.mesh('line', 1,   2,        *[tagNodeFndn, tagNodeUpperBound], 0,  3,   meshsize, 'dispBeamColumn', tagGTPDelta, tags[0])
+        ops.element('elasticBeamColumn', 2, *[tagNodeUpperBound, tagNodeTop], AA, EE, 1, tagGTPDelta)
+        
+    else:                       # For Concentrated-Plasticity Model
+        ops.element('elasticBeamColumn', 2, *[tagNodeFndn,       tagNodeTop], AA, EE, 1, tagGTPDelta)
+        
+        
     
     mass = P/g
     ops.mass(tagNodeTop, *[mass,mass,1e-8])
@@ -100,6 +116,11 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, modelFoundation=True,
     tagElementWallBase = [100001] # mesh tag is 1
     return(tagNodeTop, tagNodeBase, tagElementWallBase, composite)
 
+
+
+
+
+#####################################################################################################################
 def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHingeLength, numSeg=3, rotSpring = False):
     tagEleLocal = 100*tagEleGlobal
     coordsLocal = {
@@ -117,6 +138,7 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
     if PlasticHingeLength/L >= 0.5:
         print("PlasticHingeLength >= L/2"); sys.exit()
     
+    # Here is the place where the all segments of the element is created (both linear and nonlinear)
     delta = PlasticHingeLength/numSeg
     tagNodeII = tagEleLocal-1
     tagNodeJJ = tagEleLocal+1
@@ -135,14 +157,14 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
     # Here is the place for adding the rotational springs
     eAve = section.eAve; print(f"eAve = {eAve}")
     if rotSpring == True:
-        if L <= eAve:
+        if L <= eAve:   # Beam is Shear-Critical
             ops.equalDOF(tagNodeI, tagNodeII, 1)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,          '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXI}{tagCoordXJ}{tagCoordYI}"), *[tagNodeI, tagNodeII], '-mat', *[100002, 100001], '-dir', *[2, 3])
             ops.equalDOF(tagNodeJJ, tagNodeJ, 1)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,          '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXJ}{tagCoordXI}{tagCoordYJ}"), *[tagNodeJJ, tagNodeJ], '-mat', *[100002, 100001], '-dir', *[2, 3])
-        else:
+        else:           # Beam is Flexure-Critical
             ops.equalDOF(tagNodeI, tagNodeII, 1, 2)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags, '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXI}{tagCoordXJ}{tagCoordYI}"), *[tagNodeI, tagNodeII], '-mat', 100001,   '-dir', 3)
@@ -150,14 +172,14 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags, '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXJ}{tagCoordXI}{tagCoordYJ}"), *[tagNodeJJ, tagNodeJ], '-mat', 100001,   '-dir', 3)
     else:
-        if L <= eAve:
+        if L <= eAve:   # Beam is Shear-Critical
             ops.equalDOF(tagNodeI, tagNodeII, 1, 3)
-            #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,          '-dir', *dirs)
+            #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,  '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXI}{tagCoordXJ}{tagCoordYI}"), *[tagNodeI, tagNodeII], '-mat', *[100002], '-dir', *[2])
             ops.equalDOF(tagNodeJJ, tagNodeJ, 1, 3)
-            #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,          '-dir', *dirs)
+            #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,  '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXJ}{tagCoordXI}{tagCoordYJ}"), *[tagNodeJJ, tagNodeJ], '-mat', *[100002], '-dir', *[2])
-        else:
+        else:           # Beam is Flexure-Critical
             ops.equalDOF(tagNodeI,  tagNodeII, 1, 2, 3)
             ops.equalDOF(tagNodeJJ, tagNodeJ,  1, 2, 3)
     
@@ -190,16 +212,17 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True, linearity=False
              
     #       Define Nodes & Elements
     ##      Define Base Node
-    tagNodeBase = 1
+    tagNodeBase = 100000
     ops.node(tagNodeBase, 0., 0.)
     ops.fix( tagNodeBase, 1, 1, 1)
     
     ##      Define Top Node
-    tagNodeTop  = 2
+    tagNodeTop  = 101000
     ops.node(tagNodeTop, 0., L)
-    ops.fix( tagNodeTop, 0, 1, 1)
+    ops.fix( tagNodeTop, 0, 0, 1)
+    ops.mass(tagNodeTop, 1, 1e-7, 1e-7)
         
-    tagEleGlobal = 1
+    tagEleGlobal = 4000001
     
     tagEleFibRec = subStructBeam(tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, composite, PlasticHingeLength, numSeg, rotSpring)
     # print(f"tagEleFibRec = {tagEleFibRec}")
@@ -219,7 +242,7 @@ def buildShearCritBeam(L, numSeg=3, typeEle='dispBeamColumn'):
     propFlange  = Section[nameSect]['propFlange']
     propCore    = Section[nameSect]['propCore']
     #wall       = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
-    composite   = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
+    composite   = compo("beam", *tags, P, lsr, b, 5*NfibeY, *propWeb, *propFlange, *propCore)
     compo.printVar(composite)
     fs.makeSectionBoxComposite(composite)
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.

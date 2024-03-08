@@ -12,9 +12,10 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, modelFoundation=True,
     tagGTPDelta = 2
     ops.geomTransf('Linear', tagGTLinear)
     ops.geomTransf('PDelta', tagGTPDelta)
-
+    
+    #       Define Section
     NIP         = 9
-    #       Define beamIntegrator
+    ##      Define beamIntegrator
     nameSect    = 'wall'
     tags        = Section[nameSect]['tags']
     propWeb     = Section[nameSect]['propWeb']
@@ -27,20 +28,29 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, modelFoundation=True,
     EAeff       = composite.EAeff
     EE          = EIeff
     AA          = EAeff/EIeff
-    compo.defineSection(composite)
+    compo.defineSection(composite, plot_section=True)
 
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
              
-    #       Define Nodes & Elements
+    #       Define Nodes
     ##      Define Base Node
-    tagNodeBase = 1
+    tagNodeBase             = 1
     ops.node(tagNodeBase, 0., 0.)
     ops.fix( tagNodeBase, 1, 1, 1)
     
     ##      Define Foundation Node
-    tagNodeFndn = 2
+    tagNodeFndn             = 2
     ops.node(tagNodeFndn, 0., 0.)
     
+    ##      Define the node at the top of the nonlinear element
+    tagNodeUpperBound       = 3
+    ops.node(tagNodeUpperBound, 0., PlasticHingeLength)
+    
+    ##      Define the top node where the force is applied
+    tagNodeTop              = 4
+    ops.node(tagNodeTop, 0., L)
+
+
     if modelFoundation == True:
         ops.equalDOF(tagNodeBase, tagNodeFndn, 1, 2)
         k_rot       = 20*EIeff/L; print(f"k_rot = {k_rot}"); ops.uniaxialMaterial('Elastic',   100000, k_rot)
@@ -50,36 +60,44 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, modelFoundation=True,
         ops.equalDOF(tagNodeBase, tagNodeFndn, 1, 2, 3)
     
     #       Define Elements
+#_____________________________________________________________________________________________________________________
     ##      Define Nonlinear Elements
-    for i in range(0, numSeg):
+    # for i in range(0, numSeg):
         
-        ops.node(i+1+tagNodeFndn, 0., ((i+1)/numSeg)*PlasticHingeLength)
+    #     ops.node(i+1+tagNodeFndn, 0., ((i+1)/numSeg)*PlasticHingeLength)
         
-        if typeEle == 'forceBeamColumn':
-            #   element('forceBeamColumn', eleTag,   *eleNodes,                         transfTag,   integrationTag, '-iter', maxIter=10, tol=1e-12, '-mass', mass=0.0)
-            ops.element('forceBeamColumn', i+1,      *[i+tagNodeFndn, i+1+tagNodeFndn], tagGTPDelta, tags[0],         '-iter', 100,    1e-6)
-        elif typeEle == 'dispBeamColumn':
-              # element('dispBeamColumn',  eleTag,   *eleNodes,                         transfTag,   integrationTag, '-cMass', '-mass', mass=0.0)
-            ops.element('dispBeamColumn',  i+1,      *[i+tagNodeFndn, i+1+tagNodeFndn], tagGTPDelta, tags[0])
-            # ops.element('elasticBeamColumn',i+1,     *[i+tagNodeFndn, i+1+tagNodeFndn], tags[0],tagGTPDelta)
-            # ops.element('elasticBeamColumn', i+1,     *[i+tagNodeFndn, i+1+tagNodeFndn], AA, EE, 1, tagGTLinear)
-        else:
-            print('UNKNOWN element type!!!');sys.exit()
+    #     if typeEle == 'forceBeamColumn':
+    #         #   element('forceBeamColumn', eleTag,   *eleNodes,                         transfTag,   integrationTag, '-iter', maxIter=10, tol=1e-12, '-mass', mass=0.0)
+    #         ops.element('forceBeamColumn', i+1,      *[i+tagNodeFndn, i+1+tagNodeFndn], tagGTPDelta, tags[0],         '-iter', 100,    1e-6)
+    #     elif typeEle == 'dispBeamColumn':
+    #           # element('dispBeamColumn',  eleTag,   *eleNodes,                         transfTag,   integrationTag, '-cMass', '-mass', mass=0.0)
+    #         ops.element('dispBeamColumn',  i+1,      *[i+tagNodeFndn, i+1+tagNodeFndn], tagGTPDelta, tags[0])
+    #         # ops.element('elasticBeamColumn',i+1,     *[i+tagNodeFndn, i+1+tagNodeFndn], tags[0],tagGTPDelta)
+    #         # ops.element('elasticBeamColumn', i+1,     *[i+tagNodeFndn, i+1+tagNodeFndn], AA, EE, 1, tagGTLinear)
+    #     else:
+    #         print('UNKNOWN element type!!!');sys.exit()
             
-
     ##      Define Linear Element
-    tagNodeTop  = numSeg + tagNodeFndn + 1
-    ops.node(tagNodeTop, 0., L)
+    # tagNodeTop  = numSeg + tagNodeFndn + 1
+    # ops.node(tagNodeTop, 0., L)
     
     # ops.element('dispBeamColumn',  numSeg+1, *[numSeg+tagNodeFndn, numSeg + tagNodeFndn + 1], tagGTPDelta, tags[0])
     #   element('elasticBeamColumn', eleTag,   *eleNodes,                                       secTag, transfTag, <'-mass', mass>, <'-cMass'>, <'-release', releaseCode>)
     # ops.element('elasticBeamColumn', numSeg+1, *[numSeg+tagNodeFndn, numSeg + tagNodeFndn + 1], tags[0], tagGTPDelta)
-    ops.element('elasticBeamColumn', numSeg+1, *[numSeg+tagNodeFndn, numSeg + tagNodeFndn + 1], AA, EE, 1, tagGTLinear)
+    # ops.element('elasticBeamColumn', numSeg+1, *[numSeg+tagNodeFndn, numSeg + tagNodeFndn + 1], AA, EE, 1, tagGTLinear)
+
+#_____________________________________________________________________________________________________________________
+    ##  Define Nonlinear Elements using Mesh Command
+    meshsize                = PlasticHingeLength/numSeg
+    #  .mesh('line', tag, numnodes, *ndtags,                           id, ndf, meshsize, eleType='',       *eleArgs=[]) The arguments are same as in the element commands, but without element tag, and node tags. For example, eleArgs = ['elasticBeamColumn', A, E, Iz, transfTag]
+    ops.mesh('line', 1,   2,        *[tagNodeFndn, tagNodeUpperBound], 0,  3,   meshsize, 'dispBeamColumn', tagGTPDelta, tags[0])
+
+    ops.element('elasticBeamColumn', 2, *[tagNodeUpperBound, tagNodeTop], AA, EE, 1, tagGTPDelta)
     
     mass = P/g
     ops.mass(tagNodeTop, *[mass,mass,1e-8])
     
-    tagElementWallBase = [1]
+    tagElementWallBase = [100001] # mesh tag is 1
     return(tagNodeTop, tagNodeBase, tagElementWallBase, composite)
 
 def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHingeLength, numSeg=3, rotSpring = False):

@@ -31,22 +31,22 @@ exertGravityLoad= True
 linearity       = False
 typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
-typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
+typeAnalysis    = ['cyclic']             # 'monotonic', 'cyclic', 'NTHA'
 
 Lw              = Section['wall']['propWeb'][1] + 2*Section['wall']['propFlange'][1]
 PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
 PHL_beam        = 2/3 * Section['beam']['propWeb'][1]
-numSegWall      = 40                         # If numSegWall=0, the model will be built only with one linear elastic element connecting the base node to top node
+numSegWall      = 7                         # If numSegWall=0, the model will be built only with one linear elastic element connecting the base node to top node
 numSegBeam      = 7
 SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
 incrMono        = 1*((H_typical*n_story)/4000)
-numIncrInit     = 3
+numIncrInit     = 4
 drift           = 0.05
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
-dY              = 50 *mm
+dY              = 15 *mm
 CPD1            = 1                         # CPD = cyclesPerDisp; which should be an integer
 CPD2            = 1
 
@@ -70,9 +70,9 @@ dispTarList     = [
 
 # Plotting Options:
 buildingWidth1=20.; buildingHeight1=17.
-plot_undefo     = True
-plot_loaded     = True
-plot_defo       = True
+plot_undefo     = False
+plot_loaded     = False
+plot_defo       = False
 sfac            = 10
     
 plot_MomCurv    = False

@@ -206,7 +206,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
     for iii in range(1, numFrac+1):
         dispTar         = iii * incrFrac
         testerList      = ['NormDispIncr', 'NormUnbalance', 'EnergyIncr', ]#, 'RelativeNormUnbalance']
-        algorithmList   = [*(1*['Newton', 'KrylovNewton', 'RaphsonNewton', 'NewtonLineSearch 0.65', ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
+        algorithmList   = [*(1*['Newton', 'KrylovNewton', 'RaphsonNewton', 'NewtonLineSearch', ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
         numIter = 100; gamma = 0.5; beta = 0.25
         numIncrMax = 30000; incrMin = 1e-5
         

@@ -290,8 +290,8 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 break
     return OK
 
-def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2): 
-    distributeOnWalls= True
+def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2, distributeOnWalls=True): 
+    
     t_beg           = time.time()
     T1              = analyzeEigen(1)[0]
     dofNodeControl  = 1

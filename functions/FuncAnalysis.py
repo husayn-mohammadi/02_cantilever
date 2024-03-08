@@ -210,8 +210,8 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
         numIter = 100; gamma = 0.5; beta = 0.25
         numIncrMax = 30000; incrMin = 1e-5
         
-        tolForce    = 0.1 *N
-        tolDisp     = 0.0001 *mm
+        tolForce    = 0.001 *N
+        tolDisp     = 0.000001 *mm
         
         numIncr     = numIncrInit
         incr        = incrFrac/numIncrInit

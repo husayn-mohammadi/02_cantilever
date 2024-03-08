@@ -26,27 +26,27 @@ ops.logFile("logOpenSEES.txt")
 # Modeling Options
 recordToLog     = True                      # True, False
 modelFoundation = True
-rotSpring       = True
+rotSpring       = False
 exertGravityLoad= True
 linearity       = False
-typeBuild       = 'buildBeam'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
+typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
 typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
 
 Lw              = Section['wall']['propWeb'][1] + 2*Section['wall']['propFlange'][1]
 PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
 PHL_beam        = 2/3 * Section['beam']['propWeb'][1]
-numSegWall      = 3                         # If numSegWall=0, the model will be built only with one linear elastic element connecting the base node to top node
-numSegBeam      = 3
+numSegWall      = 40                         # If numSegWall=0, the model will be built only with one linear elastic element connecting the base node to top node
+numSegBeam      = 7
 SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
-incrMono        = 3*((H_typical*n_story)/4000)
+incrMono        = 1*((H_typical*n_story)/4000)
 numIncrInit     = 3
-drift           = 0.02
+drift           = 0.05
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
-dY              = 10 *mm
+dY              = 50 *mm
 CPD1            = 1                         # CPD = cyclesPerDisp; which should be an integer
 CPD2            = 1
 
@@ -70,12 +70,12 @@ dispTarList     = [
 
 # Plotting Options:
 buildingWidth1=20.; buildingHeight1=17.
-plot_undefo     = False
+plot_undefo     = True
 plot_loaded     = True
 plot_defo       = True
 sfac            = 10
     
-plot_MomCurv    = True
+plot_MomCurv    = False
 plot_Analysis   = True
 plot_StressStrain=False
 plot_section    = False
@@ -120,10 +120,11 @@ for types in typeAnalysis:
         
     # Plot Model
     if plot_undefo == True:
-        opv.plot_model(node_labels=0, element_labels=1, fig_wi_he=(buildingWidth+buildingWidth1, buildingHeight+buildingHeight1),
+        if "buildingWidth" not in globals(): buildingWidth=buildingHeight = 10
+        opv.plot_model(node_labels=1, element_labels=1, fig_wi_he=(buildingWidth+buildingWidth1, buildingHeight+buildingHeight1),
                        fmt_model={'color': 'blue', 'linestyle': 'solid', 'linewidth': 0.6, 'marker': '.', 'markersize': 3})
     
-    # Run Analysis
+    # Run Gravity Analysis
     if exertGravityLoad == True:
         if typeBuild == 'coupledWalls':
             fa.gravity(load, tagNodeLoad)
@@ -131,7 +132,8 @@ for types in typeAnalysis:
             # Axial Force Capacity of Walls (Pno)
             Pno = wall.Pno
             fa.gravity(ALR*Pno, tagNodeControl)
-        
+    
+    # Record Lateral Loading Analysis Results
     fr.recordPushover(tagNodeControl, tagNodeBase, outputDir)
     Hw = wall.Hw; tf = wall.tf; Hc2 = wall.Hc2
     if typeBuild == "CantileverColumn" or typeBuild == "buildBeam":
@@ -146,6 +148,8 @@ for types in typeAnalysis:
         print(f"tagEle = {tagEle}")
         print(f"tagNode = {tagNode}")
         fr.recordMomCurv(tagNode, tagEle, wall, outputDirWalls)
+    
+    # Run Lateral Loading Analysis Results 
     if types == 'monotonic':
         # if True:
         # if False:
@@ -154,7 +158,11 @@ for types in typeAnalysis:
             print("\n\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
             print(f"Monotonic Pushover Analysis Initiated at {(start_time_monotonic - start_time):.0f}sec.")
             print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
-            fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl, tagNodeLoad['wall'])
+            if typeBuild == 'coupledWalls':
+                fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl, tagNodeLoad['wall'])
+            else:
+                fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl, tagNodeControl, distributeOnWalls=False)
+            
             finish_time_monotonic = time.time()
             mins = int((finish_time_monotonic - start_time_monotonic)/60)
             secs = int((finish_time_monotonic - start_time_monotonic)%60)
@@ -179,8 +187,10 @@ for types in typeAnalysis:
             print(f"driftMax = {driftMaximum*100:.5f}%")
         
         if plot_loaded == True:
+            if "buildingWidth" not in globals(): buildingWidth=buildingHeight = 10
             opv.plot_loads_2d(nep=17, sfac=False, fig_wi_he=(buildingWidth+buildingWidth1, buildingHeight+buildingHeight1), fig_lbrt=False, fmt_model_loads={'color': 'black', 'linestyle': 'solid', 'linewidth': 1.2, 'marker': '', 'markersize': 1}, node_supports=True, truss_node_offset=0, ax=False)
         if plot_defo == True:
+            if "buildingWidth" not in globals(): buildingWidth=buildingHeight = 10
             sfac = opv.plot_defo(fig_wi_he=(buildingWidth+buildingWidth1, buildingHeight+buildingHeight1),
                                  #fmt_defo={'color': 'blue', 'linestyle': 'solid', 'linewidth': 0.6, 'marker': '.', 'markersize': 3}
                                  )

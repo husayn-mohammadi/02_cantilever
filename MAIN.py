@@ -26,7 +26,7 @@ ops.logFile("logOpenSEES.txt")
 # Modeling Options
 recordToLog     = True                      # True, False
 modelFoundation = True
-rotSpring       = False
+rotSpring       = True
 exertGravityLoad= True
 linearity       = False
 typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
@@ -37,16 +37,16 @@ Lw              = Section['wall']['propWeb'][1] + 2*Section['wall']['propFlange'
 PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
 PHL_beam        = 2/3 * Section['beam']['propWeb'][1]
 numSegWall      = 7                         # If numSegWall=0, the model will be built only with one linear elastic element connecting the base node to top node
-numSegBeam      = 7
+numSegBeam      = 10
 SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
 incrMono        = 1*((H_typical*n_story)/4000)
-numIncrInit     = 4
+numIncrInit     = 2
 drift           = 0.05
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
-dY              = 15 *mm
+dY              = 9 *mm
 CPD1            = 1                         # CPD = cyclesPerDisp; which should be an integer
 CPD2            = 1
 
@@ -106,8 +106,8 @@ for types in typeAnalysis:
     ops.model('basic', '-ndm', 2, '-ndf', 3)
             
     if typeBuild == "CantileverColumn":
-        # Py = 1 * kN
-        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_wall, numSegWall, modelFoundation, linearity)
+        Py = 1
+        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_beam, numSegBeam, modelFoundation, linearity)
         fa.analyzeEigen(1)
     elif typeBuild == 'buildBeam':
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildBeam(L, PHL_beam, numSegBeam, rotSpring)
@@ -130,7 +130,8 @@ for types in typeAnalysis:
             fa.gravity(load, tagNodeLoad)
         elif typeBuild == 'CantileverColumn':
             # Axial Force Capacity of Walls (Pno)
-            Pno = wall.Pno
+            # Pno = wall.Pno
+            Pno = 0
             fa.gravity(ALR*Pno, tagNodeControl)
     
     # Record Lateral Loading Analysis Results

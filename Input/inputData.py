@@ -39,16 +39,16 @@ linearity = 1
 
 #_______________________IMK+Pinching_Hinge_Properties________________________#
 # K0          = 12 *EIeff /L **3 Should be given in the FuncModel.py
-My_Plus     = 2*12000 *kN*m
+My_Plus     = 16000 *kN*m
 My_Neg      = -1 *My_Plus
-as_Plus     = as_Neg      = 0.01
-FprPos      = FprNeg      = A_pinch     = 0.3
+as_Plus     = as_Neg      = 0.005
+FprPos      = FprNeg      = A_pinch     = 0.7
 Lamda_S     = Lamda_C     = Lamda_A     = Lamda_K     = 1.0
 c_S         = c_C         = c_A         = c_K         = 1
-theta_p_Plus= theta_p_Neg = 0.006
-theta_pc_Plus=theta_pc_Neg= 0.03
+theta_p_Plus= theta_p_Neg = 0.02
+theta_pc_Plus=theta_pc_Neg= 0.1
 theta_u_Plus= theta_u_Neg = 0.3
-Res_Pos     = Res_Neg     = 0.15
+Res_Pos     = Res_Neg     = 0.2
 D_Plus      = D_Neg       = 0.2
 
 
@@ -56,7 +56,7 @@ D_Plus      = D_Neg       = 0.2
 #    Elements
 #=============================================================================
 Hw          = 2       *m
-H_CB        = 0.6       *m
+H_CB        = 0.9       *m
 bf          = 0.6096    *m
 tw          = 0.0142875 *m
 RhoW        = 2 *tw /bf
@@ -67,8 +67,8 @@ btie        = 0.3048    *m # Vertical Spacing
 Stie        = 0.3048    *m # Horizontal Spacing
 dtie        = 0.0254    *m
 lsr         = btie/tw
-t_pfCB      = 0.0127    *m
-t_pwCB      = 0.0127    *m
+t_pfCB      = 0.0142875 *m
+t_pwCB      = 0.0142875 *m
 
 b           = 114*mm
 NfibeY      = 10
@@ -106,7 +106,7 @@ L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
 L_Bay_List      = 2*[L_Bay]#, 5.*m, 5.*m, 5.*m]        # [*LBays]
 
-L               = H_typical
+L               = L_CB /2
 
 # Building Geometry
 Lf              = 200   *ft

@@ -9,7 +9,7 @@ from functions.ClassComposite import compo
 #############################################################################################################################
 def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, 
                      modelFoundation=True, linearity=False, 
-                     typeEle='dispBeamColumn', typeSpring="IMK_Pinching"):#"elastic", "IMK_Pinching"
+                     typeEle='dispBeamColumn', typeSpring="elastic"):#"elastic", "IMK_Pinching"
     
     #       Define Geometric Transformation
     tagGTLinear = 1
@@ -20,13 +20,13 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3,
     #       Define Section
     NIP         = 9
     ##      Define beamIntegrator
-    nameSect    = 'wall'
+    nameSect    = 'beam'
     tags        = Section[nameSect]['tags']
     propWeb     = Section[nameSect]['propWeb']
     propFlange  = Section[nameSect]['propFlange']
     propCore    = Section[nameSect]['propCore']
-    #wall       = compo("wall", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
-    composite   = compo("wall", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
+    #wall       = compo(nameSect, *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
+    composite   = compo(nameSect, *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(composite)
     EIeff       = composite.EIeff
     EAeff       = composite.EAeff

@@ -248,7 +248,7 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
         k_rot = 20*EIeff/L
         ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
     elif typeSpring == "IMK_Pinching":
-        K0          = 50 *EIeff /L **1
+        K0          = 17 *EIeff /L **1
         #   uniaxialMaterial('ModIMKPinching', matTag, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
         ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
     

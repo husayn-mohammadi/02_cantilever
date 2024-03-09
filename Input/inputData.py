@@ -26,11 +26,11 @@ Fi_v = Fi_b = Fi_c = Fi_t = 0.9
 # Material
 Es      = 200       *GPa
 Gs      = 77.2      *GPa
-Fy      = 340       *MPa
-Fu      = 400       *MPa
+Fy      = 420       *MPa
+Fu      = 470       *MPa
 Ry      = 1.1
 
-fpc     = 41.4      *MPa
+fpc     = 45        *MPa
 Ec      = 31026     *MPa
 Gc      = 12410.6   *MPa
 Rc      = 1.3
@@ -39,17 +39,17 @@ linearity = 1
 
 #_______________________IMK+Pinching_Hinge_Properties________________________#
 # K0          = 12 *EIeff /L **3 Should be given in the FuncModel.py
-My_Plus     = 16000 *kN*m
+My_Plus     = 7500 *kN*m
 My_Neg      = -1 *My_Plus
-as_Plus     = as_Neg      = 0.005
+as_Plus     = as_Neg      = 0.0005
 FprPos      = FprNeg      = A_pinch     = 0.7
 Lamda_S     = Lamda_C     = Lamda_A     = Lamda_K     = 1.0
 c_S         = c_C         = c_A         = c_K         = 1
-theta_p_Plus= theta_p_Neg = 0.02
-theta_pc_Plus=theta_pc_Neg= 0.1
-theta_u_Plus= theta_u_Neg = 0.3
-Res_Pos     = Res_Neg     = 0.2
-D_Plus      = D_Neg       = 0.2
+theta_p_Plus= theta_p_Neg = 0.003
+theta_pc_Plus=theta_pc_Neg= 0.01
+theta_u_Plus= theta_u_Neg = 0.02
+Res_Pos     = Res_Neg     = 0.15
+D_Plus      = D_Neg       = 0.5
 
 
 #=============================================================================
@@ -71,7 +71,7 @@ t_pfCB      = 0.0142875 *m
 t_pwCB      = 0.0142875 *m
 
 b           = 114*mm
-NfibeY      = 10
+NfibeY      = 15
 
 Section = {
     'wall': { # C-PSW/CF Wall Section
@@ -106,7 +106,7 @@ L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
 L_Bay_List      = 2*[L_Bay]#, 5.*m, 5.*m, 5.*m]        # [*LBays]
 
-L               = L_CB /2
+L               = L_CB /1
 
 # Building Geometry
 Lf              = 200   *ft

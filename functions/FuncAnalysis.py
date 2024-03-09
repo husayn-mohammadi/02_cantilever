@@ -422,7 +422,7 @@ def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList):
     return T1, driftMax, V_base, shearAverage
     
 
-def cyclicAnalysis(dispList, incrInit, tagNodeLoad):
+def cyclicAnalysis(dispList, incrInit, tagNodeLoad, numIncrInit=2):
     asTagNodeBase   = 1 #it is not going to be used at all in this analysis. it is just to fill a positional argument
     t_beg           = time.time()
     dofNodeControl  = 1
@@ -448,14 +448,17 @@ def cyclicAnalysis(dispList, incrInit, tagNodeLoad):
     # Run Analysis
     for dispIndex, disp in enumerate(dispList):
         print(f"\n\ndisp({dispIndex+1}/{len(dispList)})\t= {disp}")
-        dispTargetList  = [disp, 0, -disp, 0]
+        dispTargetList  = [disp, -disp]
+        # dispTargetList  = [disp, 0, -disp, 0]
         for index, dispTarget in enumerate(dispTargetList):
             curD        = ops.nodeDisp(tagNodeControl, dofNodeControl)
             delta       = dispTarget - curD
             numFrac     = int(abs(delta)/incrInit)
             if numFrac == 0: numFrac=1
             incrFrac    = delta/numFrac
-            OK          = convergeIt('Cyclic', tagNodeLoad, asTagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, dispList, dispTarget, t_beg, numIncrInit=2)
+            OK          = convergeIt('Cyclic', tagNodeLoad, asTagNodeBase, dofNodeControl, 
+                                     incrFrac, numFrac, disp, dispIndex, dispList, 
+                                     dispTarget, t_beg, numIncrInit)
             if OK < 0: break
         if OK < 0: break
     return OK

@@ -201,7 +201,7 @@ for types in typeAnalysis:
         print("\n\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         print(f"Cyclic Pushover Analysis Initiated at {(time.time() - start_time):.0f}sec.")
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
-        fa.cyclicAnalysis(dispTarList, incrCycl, tagNodeControl)
+        fa.cyclicAnalysis(dispTarList, incrCycl, tagNodeControl, numIncrInit)
         finish_time_cyclic = time.time()
         mins = int((finish_time_cyclic - start_time_cyclic)/60)
         secs = int((finish_time_cyclic - start_time_cyclic)%60)

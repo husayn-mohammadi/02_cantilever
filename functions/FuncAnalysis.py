@@ -205,13 +205,22 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
     
     for iii in range(1, numFrac+1):
         dispTar         = iii * incrFrac
-        testerList      = ['NormDispIncr', 'NormUnbalance', 'EnergyIncr', ]#, 'RelativeNormUnbalance']
-        algorithmList   = [*(1*['Newton', 'KrylovNewton', 'RaphsonNewton', 'NewtonLineSearch', ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
-        numIter = 100; gamma = 0.5; beta = 0.25
-        numIncrMax = 30000; incrMin = 1e-5
+        testerList      = [
+            'EnergyIncr', 
+            'NormDispIncr', 
+            'NormUnbalance', 
+            ]#, 'RelativeNormUnbalance']
+        algorithmList   = [*(1*[
+            'KrylovNewton', 
+            'Newton', 
+            'RaphsonNewton', 
+            'NewtonLineSearch', 
+            ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
+        numIter = 1000; gamma = 0.5; beta = 0.25
+        numIncrMax = 30000; incrMin = 1e-6
         
-        tolForce    = 0.001 *N
-        tolDisp     = 0.000001 *mm
+        tolForce    = 0.0000001 *N
+        tolDisp     = 0.00001 *mm
         
         numIncr     = numIncrInit
         incr        = incrFrac/numIncrInit
@@ -258,10 +267,10 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 # else:
                 #     # tol = min(1.5*tol, 1 *mm)
                 #     tolDisp     = min(2 *tolDisp,  5 *mm)
-                tolForce    = min(2 *tolForce, 10 *kN)
-                tolDisp     = min(2 *tolDisp,  5 *mm)
+                tolForce    = min(1 *tolForce, 10 *kN) # To decrease precision replace 1 with a higher number
+                tolDisp     = min(1 *tolDisp,  5 *mm)
                 remD    = dispTar - curD()[0]; print(f"{remD = }")
-                if remD >= 0.0001:
+                if abs(remD) >= 0.00001:
                     numIncr = int(numIncr*1.001**i + j)
                     j       += 1; print(f"{j = }")
                     incr    = remD/numIncr
@@ -272,7 +281,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     incr    = remD/numIncr
                     jj      += 1; print(f"{jj = }")
                 msgReducingIncrSize()
-                if numIncr >= numIncrMax or incr <= incrMin or jj>20:
+                if numIncr >= numIncrMax or abs(incr) <= incrMin or jj>200:
                     print("\nIncrement size is too small!!!")
                     t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
                     print(f"\nElapsed time: {mins} min + {secs} sec")

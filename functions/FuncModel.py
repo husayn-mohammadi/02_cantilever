@@ -205,7 +205,9 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
     
     return tagEleFibRec
 
-def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True, linearity=False, typeSpring="elastic"):#"elastic", "IMK_Pinching"
+def buildBeam(L, PlasticHingeLength=1, numSeg=3, 
+              rotSpring=True, linearity=False, 
+              typeSpring="elastic"):#"elastic", "IMK_Pinching"
     
     #       Define Geometric Transformation
     tagGTLinear = 1
@@ -366,7 +368,10 @@ def buildShearCritBeam(L, numSeg=3, typeEle='dispBeamColumn'):
 #$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%
 #$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%$%
 
-def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, PHL_wall, PHL_beam, SBL, typeCB="discretizedAllFiber", plot_section=True, modelFoundation=False, rotSpring=False, linearity=False):
+def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, 
+                 numSegBeam, numSegWall, PHL_wall, PHL_beam, SBL, 
+                 typeCB="discretizedAllFiber", plot_section=True, modelFoundation=False, 
+                 rotSpring=False, linearity=False, typeSpring="elastic"):
     
     # k_rot       = 0.4*8400000 *kip*inch # Foundations Rotational Spring
     # ops.uniaxialMaterial('Elastic',   100000, k_rot)
@@ -854,7 +859,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, 
                                 # print(f"coordNodeJ = {ops.nodeCoord(tagNodeJ)}")
                                 if 0:
                                     ops.equalDOF(tagNodeI, tagNodeJ, 2)
-                                tagToAppend = subStructBeam(tagEleBeam, tagNodeI, tagNodeJ, tagGTLinear, beam, PHL_beam, numSegBeam, rotSpring)
+                                tagToAppend = subStructBeam(tagEleBeam, tagNodeI, tagNodeJ, tagGTLinear, beam, PHL_beam, numSegBeam, rotSpring, typeSpring)
                                 tagElementBeamHinge.append(tagToAppend) # This function models the beams
                                 print(f"tagElementBeamHinge = {tagElementBeamHinge}")
                             else: 

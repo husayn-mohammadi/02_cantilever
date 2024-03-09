@@ -121,7 +121,8 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3,
 
 
 #####################################################################################################################
-def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHingeLength, numSeg=3, rotSpring = False):
+def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHingeLength, 
+                  numSeg=3, rotSpring=True, typeSpring="IMK_Pinching"):
     tagEleLocal = 100*tagEleGlobal
     coordsLocal = {
         tagNodeI: ops.nodeCoord(tagNodeI),
@@ -143,51 +144,68 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
     tagNodeII = tagEleLocal-1
     tagNodeJJ = tagEleLocal+1
     
-    for i in range(numSeg+1):
-        coordsLocal[tagNodeII-i] = [coordsLocal[tagNodeI][0]+i*delta/L*Lx, coordsLocal[tagNodeI][1]+i*delta/L*Ly]
-        ops.node(tagNodeII-i, *coordsLocal[tagNodeII-i])
-        coordsLocal[tagNodeJJ+i] = [coordsLocal[tagNodeJ][0]-i*delta/L*Lx, coordsLocal[tagNodeJ][1]-i*delta/L*Ly]
-        ops.node(tagNodeJJ+i, *coordsLocal[tagNodeJJ+i])
-        if i > 0:
-            ops.element('dispBeamColumn',   tagNodeII-i, *[tagNodeII-i, tagNodeII-i+1], tagGT, section.tagSec) # for now instead of tagGTLinear I have written 1
-            ops.element('dispBeamColumn',   tagNodeJJ+i, *[tagNodeJJ+i, tagNodeJJ+i-1], tagGT, section.tagSec) # for now instead of tagGTLinear I have written 1
-    
-    ops.element('elasticBeamColumn',tagEleGlobal, *[tagNodeII-numSeg, tagNodeJJ+numSeg], section.AA, section.EE, 1, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
+    if typeSpring == "elastic":
+        for i in range(numSeg+1):
+            coordsLocal[tagNodeII-i] = [coordsLocal[tagNodeI][0]+i*delta/L*Lx, coordsLocal[tagNodeI][1]+i*delta/L*Ly]
+            ops.node(tagNodeII-i, *coordsLocal[tagNodeII-i])
+            coordsLocal[tagNodeJJ+i] = [coordsLocal[tagNodeJ][0]-i*delta/L*Lx, coordsLocal[tagNodeJ][1]-i*delta/L*Ly]
+            ops.node(tagNodeJJ+i, *coordsLocal[tagNodeJJ+i])
+            if i > 0:
+                ops.element('dispBeamColumn',   tagNodeII-i, *[tagNodeII-i, tagNodeII-i+1], tagGT, section.tagSec) # for now instead of tagGTLinear I have written 1
+                ops.element('dispBeamColumn',   tagNodeJJ+i, *[tagNodeJJ+i, tagNodeJJ+i-1], tagGT, section.tagSec) # for now instead of tagGTLinear I have written 1
+        ops.element('elasticBeamColumn',tagEleGlobal, *[tagNodeII-numSeg, tagNodeJJ+numSeg], section.AA, section.EE, 1, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
+    elif typeSpring == "IMK_Pinching":
+        ops.node(tagNodeII, *coordsLocal[tagNodeI])
+        ops.node(tagNodeJJ, *coordsLocal[tagNodeJ])
+        ops.element('elasticBeamColumn',tagEleGlobal, *[tagNodeII, tagNodeJJ], section.AA, section.EE, 1, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
     
     # Here is the place for adding the rotational springs
+    # tagSpringRot    = 100001
+    # if typeSpring == "elastic":
+    #     k_rot = 20*EIeff/L
+    #     ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
+    # elif typeSpring == "IMK_Pinching":
+    #     K0          = 12 *EIeff /L **1
+    #     #   uniaxialMaterial('ModIMKPinching', matTag, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
+    #     ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
+    
     eAve = section.eAve; print(f"eAve = {eAve}")
     if rotSpring == True:
         if L <= eAve:   # Beam is Shear-Critical
+            print(f"{L = } <= {eAve = } ===>>> Beam is Shear-Critical")
             ops.equalDOF(tagNodeI, tagNodeII, 1)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,          '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXI}{tagCoordXJ}{tagCoordYI}"), *[tagNodeI, tagNodeII], '-mat', *[100002, 100001], '-dir', *[2, 3])
-            ops.equalDOF(tagNodeJJ, tagNodeJ, 1)
+            ops.equalDOF(tagNodeJ, tagNodeJJ, 1)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,          '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXJ}{tagCoordXI}{tagCoordYJ}"), *[tagNodeJJ, tagNodeJ], '-mat', *[100002, 100001], '-dir', *[2, 3])
         else:           # Beam is Flexure-Critical
+            print(f"{L = } > {eAve = } ===>>> Beam is Flexure-Critical")
             ops.equalDOF(tagNodeI, tagNodeII, 1, 2)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags, '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXI}{tagCoordXJ}{tagCoordYI}"), *[tagNodeI, tagNodeII], '-mat', 100001,   '-dir', 3)
-            ops.equalDOF(tagNodeJJ, tagNodeJ, 1, 2)
+            ops.equalDOF(tagNodeJ, tagNodeJJ, 1, 2)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags, '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXJ}{tagCoordXI}{tagCoordYJ}"), *[tagNodeJJ, tagNodeJ], '-mat', 100001,   '-dir', 3)
     else:
         if L <= eAve:   # Beam is Shear-Critical
+            print(f"{L = } <= {eAve = } ===>>> Beam is Shear-Critical")
             ops.equalDOF(tagNodeI, tagNodeII, 1, 3)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,  '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXI}{tagCoordXJ}{tagCoordYI}"), *[tagNodeI, tagNodeII], '-mat', *[100002], '-dir', *[2])
-            ops.equalDOF(tagNodeJJ, tagNodeJ, 1, 3)
+            ops.equalDOF(tagNodeJ, tagNodeJJ, 1, 3)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,  '-dir', *dirs)
             ops.element('zeroLength', int(f"89{tagCoordXJ}{tagCoordXI}{tagCoordYJ}"), *[tagNodeJJ, tagNodeJ], '-mat', *[100002], '-dir', *[2])
         else:           # Beam is Flexure-Critical
+            print(f"{L = } > {eAve = } ===>>> Beam is Flexure-Critical")
             ops.equalDOF(tagNodeI,  tagNodeII, 1, 2, 3)
-            ops.equalDOF(tagNodeJJ, tagNodeJ,  1, 2, 3)
+            ops.equalDOF(tagNodeJ, tagNodeJJ,  1, 2, 3)
     
     tagEleFibRec = tagNodeII-1
     
     return tagEleFibRec
 
-def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True, linearity=False):
+def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True, linearity=False, typeSpring="elastic"):#"elastic", "IMK_Pinching"
     
     #       Define Geometric Transformation
     tagGTLinear = 1
@@ -203,13 +221,14 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True, linearity=False
     #composite  = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
     composite   = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(composite)
-    EIeff       = composite.EIeff; k_rot = 20*EIeff/L; print(f"k_rot2 = {k_rot}"); ops.uniaxialMaterial('Elastic',   100001, k_rot)
+    EIeff       = composite.EIeff
     EAeff       = composite.EAeff
     composite.EE= EIeff
     composite.AA= EAeff/EIeff
     compo.defineSection(composite, plot_section=True)
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
-             
+    
+    
     #       Define Nodes & Elements
     ##      Define Base Node
     tagNodeBase = 100000
@@ -221,10 +240,19 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3, rotSpring=True, linearity=False
     ops.node(tagNodeTop, 0., L)
     ops.fix( tagNodeTop, 0, 0, 1)
     ops.mass(tagNodeTop, 1, 1e-7, 1e-7)
-        
-    tagEleGlobal = 4000001
     
-    tagEleFibRec = subStructBeam(tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, composite, PlasticHingeLength, numSeg, rotSpring)
+    tagSpringRot    = 100001
+    if typeSpring == "elastic":
+        k_rot = 20*EIeff/L
+        ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
+    elif typeSpring == "IMK_Pinching":
+        K0          = 50 *EIeff /L **1
+        #   uniaxialMaterial('ModIMKPinching', matTag, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
+        ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
+    
+    tagEleGlobal = 4000001
+    tagEleFibRec = subStructBeam(tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, composite, 
+                                 PlasticHingeLength, numSeg, rotSpring, typeSpring)
     # print(f"tagEleFibRec = {tagEleFibRec}")
     return(tagNodeTop, tagNodeBase, [tagEleFibRec], composite)
 

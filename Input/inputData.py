@@ -42,13 +42,13 @@ linearity = 1
 C_K0        = 17
 My_Plus     = 7500 *kN*m
 My_Neg      = -1 *My_Plus
-as_Plus     = as_Neg      = 0.0005
+as_Plus     = as_Neg      = 0.00000005
 FprPos      = FprNeg      = A_pinch     = 0.7
 Lamda_S     = Lamda_C     = Lamda_A     = Lamda_K     = 1.0
 c_S         = c_C         = c_A         = c_K         = 1
 theta_p_Plus= theta_p_Neg = 0.003
-theta_pc_Plus=theta_pc_Neg= 0.01
-theta_u_Plus= theta_u_Neg = 0.02
+theta_pc_Plus=theta_pc_Neg= 0.015
+theta_u_Plus= theta_u_Neg = 0.1
 Res_Pos     = Res_Neg     = 0.15
 D_Plus      = D_Neg       = 0.5
 
@@ -56,8 +56,8 @@ D_Plus      = D_Neg       = 0.5
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 2       *m
-H_CB        = 0.9       *m
+Hw          = 3.3330    *m
+H_CB        = 0.6096    *m
 bf          = 0.6096    *m
 tw          = 0.0142875 *m
 RhoW        = 2 *tw /bf
@@ -68,8 +68,8 @@ btie        = 0.3048    *m # Vertical Spacing
 Stie        = 0.3048    *m # Horizontal Spacing
 dtie        = 0.0254    *m
 lsr         = btie/tw
-t_pfCB      = 0.0142875 *m
-t_pwCB      = 0.0142875 *m
+t_pfCB      = 0.015     *m
+t_pwCB      = t_pfCB
 
 b           = 114*mm
 NfibeY      = 15
@@ -98,11 +98,11 @@ Section = {
 #=============================================================================
 #    Frame Data:
 #=============================================================================
-n_story         = 1
+n_story         = 8
 H_typical       = 14        *ft
 H_first         = 17        *ft
 L_CB            = 2.4384    *m
-LDR_CB          = L_CB /H_CB; print(f"{LDR_CB:.3f}")
+LDR_CB          = L_CB /H_CB; print(f"LDR_CB = {LDR_CB:.3f}")
 L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
 L_Bay_List      = 2*[L_Bay]#, 5.*m, 5.*m, 5.*m]        # [*LBays]

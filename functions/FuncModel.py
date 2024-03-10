@@ -248,7 +248,7 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
         k_rot = 20*EIeff/L
         ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
     elif typeSpring == "IMK_Pinching":
-        K0          = 17 *EIeff /L **1
+        K0          = C_K0 *EIeff /L **1
         #   uniaxialMaterial('ModIMKPinching', matTag, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
         ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
     
@@ -529,7 +529,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
     #beam       = compo("beam", *tags, P, lsr, b,     NfibeY, *propWeb, *propFlange, *propCore)
     beam        = compo("beam", *tags, 0, lsr, 0.114, 5*NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(beam)
-    EIeff       = wall.EIeff; k_rot = 4*20*EIeff/L_CB; print(f"k_rot2 = {k_rot}"); ops.uniaxialMaterial('Elastic',   100001, k_rot)
+    EIeff       = beam.EIeff
     Av          = beam.St_web.A; G=beam.St_web.Es/(2*(1+0.3)); k_trans=20*2*G*Av/SBL/10; b1=0.003; R0,cR1,cR2= 18.5, 0.9, 0.1; a1=a3= 0.06; a2=a4= 1.0; Vp=0.6*beam.St_web.Fy*Av; 
     ops.uniaxialMaterial('Steel02', 100002, Vp, k_trans, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
     EAeff       = wall.EAeff
@@ -540,6 +540,16 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
     print(f"{eMin = }\n{eMax = }")
     compo.defineSection(beam, plot_section=True) # This will create the fiber section
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
+    
+    #   Define Hinge Material for Different Cases
+    tagSpringRot    = 100001
+    if typeSpring == "elastic":
+        k_rot = 4*20*EIeff/L_CB
+        ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
+    elif typeSpring == "IMK_Pinching":
+        K0          = C_K0 *EIeff /L **1 # This EIeff is the the last one created. 
+        #   uniaxialMaterial('ModIMKPinching', matTag, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
+        ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
     
     #   Define material and sections
     A, E, I = 1e1, 200e9, 1e-2
@@ -859,7 +869,8 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
                                 # print(f"coordNodeJ = {ops.nodeCoord(tagNodeJ)}")
                                 if 0:
                                     ops.equalDOF(tagNodeI, tagNodeJ, 2)
-                                tagToAppend = subStructBeam(tagEleBeam, tagNodeI, tagNodeJ, tagGTLinear, beam, PHL_beam, numSegBeam, rotSpring, typeSpring)
+                                tagToAppend = subStructBeam(tagEleBeam, tagNodeI, tagNodeJ, tagGTLinear, beam, 
+                                                            PHL_beam, numSegBeam, rotSpring, typeSpring)
                                 tagElementBeamHinge.append(tagToAppend) # This function models the beams
                                 print(f"tagElementBeamHinge = {tagElementBeamHinge}")
                             else: 

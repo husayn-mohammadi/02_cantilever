@@ -39,6 +39,7 @@ linearity = 1
 
 #_______________________IMK+Pinching_Hinge_Properties________________________#
 # K0          = 12 *EIeff /L **3 Should be given in the FuncModel.py
+C_K0        = 17
 My_Plus     = 7500 *kN*m
 My_Neg      = -1 *My_Plus
 as_Plus     = as_Neg      = 0.0005

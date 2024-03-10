@@ -1,14 +1,14 @@
 exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open("Input/units    .py").read())
 exec(open("MAIN.py").readlines()[19]) # It SHOULD read and execute exec(open("Input/inputData.py").read())
+import time, os, eqsig, winsound, sys
 import openseespy.opensees     as ops
 import numpy                   as np
-import time, os, eqsig
-import sys
 import functions.FuncRecorders as fr
 import functions.FuncPlot      as fp
 import matplotlib.pyplot       as plt
-## import winsound
 # from colorama import Fore, Style # print(f"{Fore.YELLOW} your text {Style.RESET_ALL}")
+
+
 
 def analyzeEigen(nEigen, printIt=True):
     omega2List  = sorted(ops.eigen(nEigen))
@@ -146,11 +146,11 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                         dispBot = ops.nodeDisp(tagNodePrv, dofNodeControl)
                         # print(f"dispBot = {dispBot}")
                         drift.append(abs(dispTop - dispBot)/height)
-                        print(f"drift[{i}] = {drift[i-1] *100} %")
+                        # print(f"drift[{i}] = {drift[i-1] *100} %")
                     tagNodePrv = tagNode
                     # print(f"tagNodePrv = {tagNodePrv}")
                 driftMax = max(drift)
-                print(f"driftMax = {driftMax *100} %")
+                # print(f"driftMax = {driftMax *100} %")
             else:
                 height  = ops.nodeCoord(tagNodeLoad)[1] - ops.nodeCoord(tagNodeBase)[1]
                 dispTop = ops.nodeDisp(tagNodeLoad, dofNodeControl)
@@ -204,23 +204,35 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
             print(f"Incr\t\t\t= {incr}")
     
     for iii in range(1, numFrac+1):
-        dispTar = iii * incrFrac
-        testerList      = ['NormDispIncr', 'NormUnbalance', 'EnergyIncr', ]#, 'RelativeNormUnbalance']
-        algorithmList   = [*(1*['Newton', 'KrylovNewton', 'RaphsonNewton', 'NewtonLineSearch 0.65', ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
+        dispTar         = iii * incrFrac
+        testerList      = [
+            'EnergyIncr', 
+            'NormDispIncr', 
+            'NormUnbalance', 
+            ]#, 'RelativeNormUnbalance']
+        algorithmList   = [*(1*[
+            'KrylovNewton', 
+            'Newton', 
+            'RaphsonNewton', 
+            'NewtonLineSearch', 
+            ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
         numIter = 100; gamma = 0.5; beta = 0.25
-        numIncrMax      = 30000; incrMin = 1e-5
+        numIncrMax = 30000; incrMin = 1e-6
+        
+        tolForce    = 0.0001 *N
+        tolDisp     = 0.00001 *mm
         
         numIncr     = numIncrInit
         incr        = incrFrac/numIncrInit
-        j = 1
+        j = 1; jj = 1
         for i in range(100000000):
         
             for algorithm in algorithmList:
                 for tester in testerList:
                     if tester == 'NormUnbalance':
-                        tol = 1 *N
+                        tol = tolForce
                     else:
-                        tol = 0.01 *mm
+                        tol = tolDisp
                     ops.test(tester, tol, numIter)
                     ops.algorithm(algorithm)  
                     if typeAnalysis == "NTHA":
@@ -249,24 +261,31 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     print(f"\n=============== THE ALGORITHM {algorithm} FAILED TO CONVERGE!!! ===============")
             if OK == 0: break
             else:
-                if tester == 'NormUnbalance':
-                    tol = min(1.5*tol, 5 *N)
-                else:
-                    tol = min(1.5*tol, 1 *mm)
-                remD    = dispTar - curD()[0]
-                if remD >= 0.001:
+                # if tester == 'NormUnbalance':
+                #     # tol = min(1.5*tol, 5 *N)
+                #     tolForce    = min(2 *tolForce, 10 *kN)
+                # else:
+                #     # tol = min(1.5*tol, 1 *mm)
+                #     tolDisp     = min(2 *tolDisp,  5 *mm)
+                tolForce    = min(1 *tolForce, 10 *kN) # To decrease precision replace 1 with a higher number
+                tolDisp     = min(1 *tolDisp,  5 *mm)
+                remD    = dispTar - curD()[0]; print(f"{remD = }")
+                if abs(remD) >= 0.00001:
                     numIncr = int(numIncr*1.001**i + j)
-                    j += 1
+                    j       += 1; print(f"{j = }")
                     incr    = remD/numIncr
                 else:
-                    numIncr = 1
+                    OK      = 1
+                    break
+                    numIncr = 2
                     incr    = remD/numIncr
+                    jj      += 1; print(f"{jj = }")
                 msgReducingIncrSize()
-                if numIncr >= numIncrMax or incr <= incrMin:
+                if numIncr >= numIncrMax or abs(incr) <= incrMin or jj>200:
                     print("\nIncrement size is too small!!!")
                     t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
                     print(f"\nElapsed time: {mins} min + {secs} sec")
-                    # winsound.Beep(440, 1000)  # generate a 440Hz sound that lasts 500 milliseconds
+                    winsound.Beep(440, 1000)  # generate a 440Hz sound that lasts 500 milliseconds
                     text = " pushover" if typeAnalysis!="NTHA" else ""
                     print("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     print(f"*!*!*!*!*!* The {typeAnalysis}{text} analysis failed to converge!!! *!*!*!*!*!*")
@@ -280,7 +299,8 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 break
     return OK
 
-def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad): 
+def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2, distributeOnWalls=True): 
+    
     t_beg           = time.time()
     T1              = analyzeEigen(1)[0]
     dofNodeControl  = 1
@@ -290,12 +310,32 @@ def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad):
     ops.pattern('Plain', tagPatternPlain, tagTSLinear)
     #   load(nodeTag,     *loadValues)
     if type(tagNodeLoad) == list:
-        tagNodeControl  = tagNodeLoad[-1]
-        n_story = len(tagNodeLoad)-1
-        Cvx     = verDistFact(We, T1, h_1, h_typ, n_story)
-        for i, tagNode in enumerate(tagNodeLoad):
-            # ops.load(tagNode, *[i/n_story, 0, 0])
-            ops.load(tagNode, *[Cvx[i], 0, 0])
+        if distributeOnWalls == False:
+            tagNodeControl  = tagNodeLoad[-1]
+            n_story         = len(tagNodeLoad)-1
+            Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
+            for i, tagNode in enumerate(tagNodeLoad):
+                # ops.load(tagNode, *[i/n_story, 0, 0])
+                ops.load(tagNode, *[Cvx[i], 0, 0])
+        else:
+            def tagNodeLoadStory(tagNodeLoad, n_story):
+                tagNodeStory        = {}
+                for i in range(1, n_story+1):
+                    tagNodeStory[i] = []
+                    for tagNode in tagNodeLoad:
+                        tagCoordYI  = f"{tagNode}"[1:-3]
+                        if tagCoordYI == f"{i:02}":
+                            tagNodeStory[i].append(tagNode)
+                return tagNodeStory
+            
+            tagNodeControl      = tagNodeLoad[-1]
+            nWalls              = 2
+            n_story             = int(len(tagNodeLoad2)/nWalls)
+            tagNodeLoadStories  = tagNodeLoadStory(tagNodeLoad2, n_story)
+            Cvx                 = verDistFact(We, T1, h_1, h_typ, n_story)
+            for story, tagNodeList in tagNodeLoadStories.items():
+                for tagNode in tagNodeList:
+                    ops.load(tagNode, *[Cvx[story]/nWalls, 0, 0])
     else:
         tagNodeControl  = tagNodeLoad
         ops.load(tagNodeControl, *[1, 0, 0])
@@ -337,7 +377,7 @@ def calcDrift(tagNodeLoad, tagNodeBase, dofNodeControl):
 def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList):
     t_beg           = time.time()
     T1              = analyzeEigen(3, True)[0]
-    Cvx = verDistFact(We, T1, h_1, h_typ, n_story)
+    Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
     C_V_base        = Sa(T1) /(R /Ie)
     V_base          = C_V_base *We
     dofNodeControl  = 1
@@ -382,7 +422,7 @@ def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList):
     return T1, driftMax, V_base, shearAverage
     
 
-def cyclicAnalysis(dispList, incrInit, tagNodeLoad):
+def cyclicAnalysis(dispList, incrInit, tagNodeLoad, numIncrInit=2):
     asTagNodeBase   = 1 #it is not going to be used at all in this analysis. it is just to fill a positional argument
     t_beg           = time.time()
     dofNodeControl  = 1
@@ -408,14 +448,17 @@ def cyclicAnalysis(dispList, incrInit, tagNodeLoad):
     # Run Analysis
     for dispIndex, disp in enumerate(dispList):
         print(f"\n\ndisp({dispIndex+1}/{len(dispList)})\t= {disp}")
-        dispTargetList  = [disp, 0, -disp, 0]
+        dispTargetList  = [disp, -disp]
+        # dispTargetList  = [disp, 0, -disp, 0]
         for index, dispTarget in enumerate(dispTargetList):
             curD        = ops.nodeDisp(tagNodeControl, dofNodeControl)
             delta       = dispTarget - curD
             numFrac     = int(abs(delta)/incrInit)
             if numFrac == 0: numFrac=1
             incrFrac    = delta/numFrac
-            OK          = convergeIt('Cyclic', tagNodeLoad, asTagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, dispList, dispTarget, t_beg, numIncrInit=2)
+            OK          = convergeIt('Cyclic', tagNodeLoad, asTagNodeBase, dofNodeControl, 
+                                     incrFrac, numFrac, disp, dispIndex, dispList, 
+                                     dispTarget, t_beg, numIncrInit)
             if OK < 0: break
         if OK < 0: break
     return OK
@@ -442,6 +485,14 @@ def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag
     OK = convergeIt('NTHA', tagNodeLoad, tagNodeBase, dofNodeControl, dtGM, NPTS, Tmax, 0, ["No list required!"], Tmax, t_beg, numIncrInit=2)
     ops.wipeAnalysis()
     return OK
+
+
+def replace_line(file_name, line_num, text):
+    lines = open(file_name, 'r').readlines()
+    lines[line_num - 1] = text + '\n'  # array index starts at 0, subtract 1
+    out = open(file_name, 'w')
+    out.writelines(lines)
+    out.close()
 
 def get_file_names(directory): # This functions returns a list containing the file names in the given directory
     return [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]

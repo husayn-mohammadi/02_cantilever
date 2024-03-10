@@ -5,6 +5,9 @@ exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open(f"I
 # exec(open("../Input/unitsSI.py").read()) # It SHOULD read and execute exec(open("Input/units    .py").read())
 # exec(open("MAIN.py").readlines()[20]) # It SHOULD read and execute exec(open("Input/materialParameters.py").read())
 
+#=============================================================================
+#    Design Inputs
+#=============================================================================
 # Seismic Coefficients
 Cd      = 5.5
 Ie      = 1.
@@ -15,40 +18,61 @@ Rho     = 1.
 # Composite wall resistance factor
 Fi_v = Fi_b = Fi_c = Fi_t = 0.9
 
+
+
+#=============================================================================
+#    Material Properties
+#=============================================================================
 # Material
-Es      = 29000 *ksi
-Gs      = 11200 *ksi
-Fy      = 50    *ksi
-Fu      = 65    *ksi
+Es      = 200       *GPa
+Gs      = 77.2      *GPa
+Fy      = 420       *MPa
+Fu      = 470       *MPa
 Ry      = 1.1
 
-fpc     = 6     *ksi
-Ec      = 4500  *ksi
-Gc      = 1800  *ksi
+fpc     = 45        *MPa
+Ec      = 31026     *MPa
+Gc      = 12410.6   *MPa
 Rc      = 1.3
 
 linearity = 1
 
+#_______________________IMK+Pinching_Hinge_Properties________________________#
+# K0          = 12 *EIeff /L **3 Should be given in the FuncModel.py
+C_K0        = 17
+My_Plus     = 7500 *kN*m
+My_Neg      = -1 *My_Plus
+as_Plus     = as_Neg      = 0.00000005
+FprPos      = FprNeg      = A_pinch     = 0.7
+Lamda_S     = Lamda_C     = Lamda_A     = Lamda_K     = 1.0
+c_S         = c_C         = c_A         = c_K         = 1
+theta_p_Plus= theta_p_Neg = 0.003
+theta_pc_Plus=theta_pc_Neg= 0.015
+theta_u_Plus= theta_u_Neg = 0.1
+Res_Pos     = Res_Neg     = 0.15
+D_Plus      = D_Neg       = 0.5
+
+
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 132   *inch
-H_CB        = 24    *inch
-bf          = 24    *inch
-tw          = 9/16  *inch
+Hw          = 3.3330    *m
+H_CB        = 0.6096    *m
+bf          = 0.6096    *m
+tw          = 0.0142875 *m
 RhoW        = 2 *tw /bf
 tf          = tw
 tc          = bf - 2*tw
 t_sc        = tc + 2*tw
-btie        = 12    *inch
-Stie        = 12    *inch
-dtie        = 1     *inch
+btie        = 0.3048    *m # Vertical Spacing
+Stie        = 0.3048    *m # Horizontal Spacing
+dtie        = 0.0254    *m
 lsr         = btie/tw
-t_pfCB      = 0.5   *inch
-t_pwCB      = 0.5   *inch
+t_pfCB      = 0.015     *m
+t_pwCB      = t_pfCB
 
 b           = 114*mm
-NfibeY      = 10
+NfibeY      = 15
 
 Section = {
     'wall': { # C-PSW/CF Wall Section
@@ -74,16 +98,16 @@ Section = {
 #=============================================================================
 #    Frame Data:
 #=============================================================================
-n_story         = 2
-H_typical       = 14    *ft
-H_first         = 17    *ft
-LDR_CB          = 4
-L_CB            = LDR_CB * H_CB
+n_story         = 8
+H_typical       = 14        *ft
+H_first         = 17        *ft
+L_CB            = 2.4384    *m
+LDR_CB          = L_CB /H_CB; print(f"LDR_CB = {LDR_CB:.3f}")
 L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
 L_Bay_List      = 2*[L_Bay]#, 5.*m, 5.*m, 5.*m]        # [*LBays]
 
-L               = H_typical
+L               = L_CB /1
 
 # Building Geometry
 Lf              = 200   *ft
@@ -100,10 +124,10 @@ Pno             = 12776238.963599999 *N
 ALR             = 0.02  # Axial Load Ratio
 Py              = ALR * Pno
 #   Frame Loads
-load={}
-DL_Floor        = 0.12  *ksf #90 *psf
+load            = {}
+DL_Floor        = 12    *psf #90 *psf
 DL_PWalls       = 0 #25 *psf
-LL_Floor        = 0 #50 *psf
+LL_Floor        = 50    *psf
 LL_Roof         = 0 #20 *psf
 
 ##  Tributary Loading
@@ -256,7 +280,7 @@ print(f"M_exp = {M_exp /1000:.1f} kN.m")
 print(f"V_exp = {V_exp /1000:.1f} kN")
 
 # Check Flexure-Criticality Condition
-if V_exp *L_CB /M_exp >= 2.4: 
+if V_exp *L_CB /M_exp >= 2.6: 
     print("Flexure-Criticality Confirmed!")
 
 

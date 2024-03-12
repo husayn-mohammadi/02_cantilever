@@ -316,7 +316,7 @@ fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
 # Run Nonlinear Cross-ectional Analysis on Compression Wall
 t_IEAna_i   = time.time()
 print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Compression Wall Started.\n{'='*numSign}\n")
-fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = -Pu")
 exec(open("MAIN.py").read()) 
 EIeff_Ten   = EIeff_walls[0]
 t_IEAna_f   = time.time()
@@ -326,8 +326,9 @@ print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Compression Wall Fin
 # Run Nonlinear Cross-ectional Analysis on Tension Wall
 t_IEAna_i   = time.time()
 print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Tension Wall Started.\n{'='*numSign}\n")
-fa.replace_line('MAIN.py', 83, "Pu_1wall        = load['wallG']")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = Pu")
 exec(open("MAIN.py").read()) 
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
 EIeff_Com   = EIeff_walls[0]
 t_IEAna_f   = time.time()
 dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60
@@ -382,7 +383,7 @@ print(f"Vn*Fi_v = {Vn_Fi_v /1000:.1f} kN")
 
 # c)    Flexural Strength
 # c.1)  Flexural Strength of Tension SpeedCore Wall
-C_T         = (( 0.85 *fpc *(t_sc -2 *tw) *tw +2 *tw *Fy *Lw -Pu)/
+C_T         = (( 0.85 *fpc *(t_sc -2 *tw) *tw +2 *tw *Fy *Lw -Pu)/ # After -Pu there should be a +load["wallG"]
                 (0.85 *fpc *(t_sc -2 *tw)      +4 *tw *Fy))
 print(f"C_T = {C_T *1000:.1f} mm")
 C1_T        = (t_sc -2 *tw) *tw *Fy
@@ -403,7 +404,7 @@ Mn_T_Fi_b   = Fi_b *Mn_T
 print(f"Mn_T*Fi_b = {Mn_T_Fi_b /1000:.1f} kN.m")
     
 # c.2)  Flexural Strength of Compression SpeedCore Wall
-C_C         = ((0.85 *fpc *(t_sc-2 *tw) *tw +2 *tw *Fy *Lw +Pu)/
+C_C         = ((0.85 *fpc *(t_sc-2 *tw) *tw +2 *tw *Fy *Lw +Pu)/ # After +Pu there should be a +load["wallG"]
                (0.85 *fpc *(t_sc-2 *tw)      +4 *tw *Fy))
 print(f"C_C = {C_C *1000:.1f} mm")
 

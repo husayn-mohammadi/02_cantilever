@@ -317,14 +317,27 @@ print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 fa.replace_line('MAIN.py', 31, "linearity       = False")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
+
+# Run Nonlinear Cross-ectional Analysis on Compression Wall
 t_IEAna_i   = time.time()
-print(f"{'='*numSign}\nInelastic Analysis Started.\n{'='*numSign}\n")
+print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Compression Wall Started.\n{'='*numSign}\n")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
 exec(open("MAIN.py").read()) 
+EIeff_Ten   = EIeff_walls[0]
 t_IEAna_f   = time.time()
 dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60
-print(f"{'='*numSign}\nInelastic Analysis Finished in {dur_IEAna:.2f} mins.\n{'='*numSign}\n")
-EIeff_Ten   = EIeff_walls[0]
-EIeff_Com   = EIeff_walls[1]
+print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Compression Wall Finished in {dur_IEAna:.2f} mins.\n{'='*numSign}\n")
+
+# Run Nonlinear Cross-ectional Analysis on Tension Wall
+t_IEAna_i   = time.time()
+print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Tension Wall Started.\n{'='*numSign}\n")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = load['wallG']")
+exec(open("MAIN.py").read()) 
+EIeff_Com   = EIeff_walls[0]
+t_IEAna_f   = time.time()
+dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60
+print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Tension Wall  Finished in {dur_IEAna:.2f} mins.\n{'='*numSign}\n")
+
 
 # The portion of the overturning moment resisted by the individual wall is
 Mu_T        = (EIeff_Ten /(EIeff_Ten +EIeff_Com)) *Mu_Both

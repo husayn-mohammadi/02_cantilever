@@ -91,7 +91,7 @@ def gravity(load, tagNodeLoad):
     print(f"Type of tagNodeLoad is {type(tagNodeLoad)}")
     if type(tagNodeLoad) == int: 
         print("Loading is based on Cantilever Column Structure.")
-        ops.load(tagNodeLoad, 0.0, -abs(load), 0.0)
+        ops.load(tagNodeLoad, 0.0, load, 0.0)
     else:
         print("Loading is based on Shear Wall Structure.")
         for element, tagNodes in tagNodeLoad.items():

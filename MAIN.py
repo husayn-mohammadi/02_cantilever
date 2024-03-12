@@ -29,7 +29,7 @@ modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
 linearity       = False
-typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
+typeBuild       = 'CantileverColumn'            # 'coupledWalls', 'CantileverColumn', 'CantileverBeam', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
 typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
 
@@ -108,7 +108,11 @@ for types in typeAnalysis:
             
     if typeBuild == "CantileverColumn":
         Py = 1
-        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_beam, numSegBeam, modelFoundation, linearity, typeSpring)
+        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_wall, numSegWall, "wall", modelFoundation, linearity, typeSpring)
+        fa.analyzeEigen(1)
+    elif typeBuild == "CantileverBeam":
+        Py = 1
+        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_beam, numSegBeam, "beam", modelFoundation, linearity, typeSpring)
         fa.analyzeEigen(1)
     elif typeBuild == 'buildBeam':
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildBeam(L, PHL_beam, numSegBeam, rotSpring, linearity, typeSpring)
@@ -132,8 +136,9 @@ for types in typeAnalysis:
         elif typeBuild == 'CantileverColumn':
             # Axial Force Capacity of Walls (Pno)
             # Pno = wall.Pno
-            Pno = 0
-            fa.gravity(ALR*Pno, tagNodeControl)
+            # Pno = 0
+            # fa.gravity(ALR*Pno, tagNodeControl)
+            fa.gravity(1*load["wall"], tagNodeControl)
     
     # Record Lateral Loading Analysis Results
     fr.recordPushover(tagNodeControl, tagNodeBase, outputDir)

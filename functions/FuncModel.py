@@ -7,9 +7,9 @@ from functions.ClassComposite import compo
 
 
 #############################################################################################################################
-def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, 
+def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
                      modelFoundation=True, linearity=False, 
-                     typeEle='dispBeamColumn', typeSpring="elastic"):#"elastic", "IMK_Pinching"
+                     typeSpring="elastic"):#"elastic", "IMK_Pinching"
     
     #       Define Geometric Transformation
     tagGTLinear = 1
@@ -20,7 +20,6 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3,
     #       Define Section
     NIP         = 9
     ##      Define beamIntegrator
-    nameSect    = 'beam'
     tags        = Section[nameSect]['tags']
     propWeb     = Section[nameSect]['propWeb']
     propFlange  = Section[nameSect]['propFlange']
@@ -113,7 +112,7 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3,
     mass = P/g
     ops.mass(tagNodeTop, *[mass,mass,1e-8])
     
-    tagElementWallBase = [100001] # mesh tag is 1
+    tagElementWallBase = [10001] # mesh tag is 1
     return(tagNodeTop, tagNodeBase, tagElementWallBase, composite)
 
 

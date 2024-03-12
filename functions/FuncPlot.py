@@ -241,9 +241,9 @@ def plotMomCurv(outputDir, tagEle, section, typeBuild):
     
     fig, ax = plt.subplots(figsize=(10, 7), dpi=200)
     fig.suptitle(f"Momemnt-Curvature: {tagEle}")
-    ax.set_xlabel(f'curvature (m^-1)')
+    ax.set_xlabel(f'Curvature (m^-1)')
     ax.set_ylabel('Moment (kN.m)')
-    plt.plot(curvature, moment*N/kN, linewidth=0.8, label=f"M-c: Mpeak={Mpeak*N/kN:.1f} kN.m")
+    plt.plot(curvature, moment*N/kN, linewidth=0.8, label=f"M-C: Mpeak={Mpeak*N/kN:.1f} kN.m")
     plt.plot([curAtM60per, curAtM60per], [0, Mpeak60perc*N/kN], 'r--')        # Vertical Line
     plt.plot([0, curAtM60per], [Mpeak60perc*N/kN, Mpeak60perc*N/kN], 'r--')   # Horizontal Line
     plt.plot([0, curAtMpeakE], [0, Mpeak*N/kN], 'g--', label = f" EI = {EI/(kN*m**2):.1f} kN.m^2")                        # Horizontal Line

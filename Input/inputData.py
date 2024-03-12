@@ -137,7 +137,7 @@ L_Bay_x         = (42.5 +30) /2 *ft
 A_Tributary     = 0.5*L_Bay_y * L_Bay_x
 DL_Tributary    = A_Tributary * DL_Floor
 LL_Tributary    = A_Tributary * LL_Floor
-load["wall"]    = 1.0*DL_Tributary + 0.25*LL_Tributary
+load["wall"]    = 1.0*DL_Tributary + 0.25*LL_Tributary # This is to calculate the effective weight of the building for earthquake force 
 load["wallG"]   = 1.2*DL_Tributary + 1.60*LL_Tributary # This is for gravity analysis of the structure
 # LoadG           = 72
 # load["wall"]    = LoadG * kip
@@ -149,7 +149,7 @@ A_Leaning       = A_SFRS - A_Tributary*n_Bay_x
 L_PWall         = L_Bay_y + ((n_Bay_x+1) * L_Bay_x) - n_Bay_x*Hw
 DL_Leaning      = A_Leaning * DL_Floor + L_PWall*H_typical * DL_PWalls
 LL_Leaning      = A_Leaning * LL_Floor
-load["leaningColumn"] = 1.0*DL_Leaning + 0.25*LL_Leaning
+load["leaningColumn"] = 1.0*DL_Leaning + 0.25*LL_Leaning # This is to calculate the effective weight of the building for earthquake force 
 load["leaningColumnG"]= 1.2*DL_Leaning + 1.60*LL_Leaning  # This is for gravity analysis of the structure
 # load["leaningColumn"] = 0 * kip
 

@@ -216,11 +216,11 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
             'RaphsonNewton', 
             'NewtonLineSearch', 
             ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
-        numIter = 100; gamma = 0.5; beta = 0.25
-        numIncrMax = 30000; incrMin = 1e-6
+        numIter = 500; gamma = 0.5; beta = 0.25
+        numIncrMax = 30000; incrMin = 1e-5
         
-        tolForce    = 0.0001 *N
-        tolDisp     = 0.00001 *mm
+        tolForce    = 0.0000001 *N
+        tolDisp     = 0.0000001 *m
         
         numIncr     = numIncrInit
         incr        = incrFrac/numIncrInit

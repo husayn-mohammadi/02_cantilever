@@ -80,6 +80,7 @@ plot_Analysis   = True
 plot_StressStrain=False
 plot_section    = False
 typeSpring      = "elastic"  # "elastic", "IMK_Pinching"
+Pu_1wall        = -load["wallG"]
 #=============================================================================
 #    MAIN
 #=============================================================================
@@ -135,7 +136,7 @@ for types in typeAnalysis:
             # Pno = wall.Pno
             # Pno = 0
             # fa.gravity(ALR*Pno, tagNodeControl)
-            fa.gravity(1*load["wall"], tagNodeControl)
+            fa.gravity(Pu_1wall, tagNodeControl)
     
     # Record Lateral Loading Analysis Results
     fr.recordPushover(tagNodeControl, tagNodeBase, outputDir)

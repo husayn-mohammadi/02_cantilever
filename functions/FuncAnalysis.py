@@ -97,10 +97,10 @@ def gravity(load, tagNodeLoad):
         for element, tagNodes in tagNodeLoad.items():
             if element == "wall":
                 for tagNode in tagNodes:
-                    ops.load(tagNode, 0.0, -abs(load["wall"]), 0.0)
+                    ops.load(tagNode, 0.0, -abs(load["wallG"]), 0.0)
             elif element == "leaningColumn":
                 for tagNode in tagNodes:
-                    ops.load(tagNode, 0.0, -abs(load["leaningColumn"]), 0.0)
+                    ops.load(tagNode, 0.0, -abs(load["leaningColumnG"]), 0.0)
             else:
                 print("In GravityLoading element type was unknown!"); sys.exit()
     

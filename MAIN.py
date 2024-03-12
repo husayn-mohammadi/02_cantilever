@@ -24,7 +24,7 @@ ops.logFile("logOpenSEES.txt")
 #    Define Variables
 #=============================================================================
 # Modeling Options
-recordToLog     = False                      # True, False
+recordToLog     = True                      # True, False
 modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
@@ -84,11 +84,8 @@ typeSpring      = "elastic"  # "elastic", "IMK_Pinching"
 #    MAIN
 #=============================================================================
 start_time = time.time()
-recVarAvai = "recordToLogIDA" not in globals() or "recordToLogDesign" not in globals()
-# print(f"{recVarAvai = }")
-if recVarAvai:
-    if recordToLog == True:
-        sys.stdout = open('logMAIN.txt', 'w')    
+if recordToLog == True:
+    sys.stdout = open('logMAIN.txt', 'w')    
 
 numFolder = 1
 for types in typeAnalysis:
@@ -287,10 +284,9 @@ print("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 print("The analysis was run successfully.")
 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
-if recVarAvai:
-    if recordToLog == True:
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
+if recordToLog == True:
+    sys.stdout.close()
+    sys.stdout = sys.__stdout__
 
 winsound.Beep(440, 300)  # generate a 440Hz sound that lasts 300 milliseconds
 winsound.Beep(440, 300)

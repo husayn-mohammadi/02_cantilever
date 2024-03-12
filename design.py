@@ -5,6 +5,7 @@ import functions.FuncAnalysis  as fa
 exec(open("Input/unitsSI.py").read()) 
 # exec(open("Input/inputData.py").read()) 
 recordToLogDesign = True
+fa.replace_line('MAIN.py', 27, "recordToLog     = False                      # True, False")
 if recordToLogDesign == True:
     sys.stdout = open("logDesign.txt", 'w') 
 
@@ -184,6 +185,7 @@ exec(open("MAIN.py").read())
 t_EAna_f    = time.time()
 dur_EAna    = (t_EAna_f - t_EAna_i)/60
 print(f"{'='*numSign}\nElastic Analysis Finished in {dur_EAna:.2f} mins.\n{'='*numSign}\n")
+
 # Effective distance between wall centroids
 L_eff   = L_CB +Lw
 
@@ -483,10 +485,8 @@ R__coupling         = M_couplingBeams /M_all
 print(f"\n\nCoupling Ratio = {R__coupling*100:.1f}%")
 
 
-
-
-
-
 if recordToLogDesign == True:
     sys.stdout.close()
     sys.stdout = sys.__stdout__
+    
+fa.replace_line('MAIN.py', 27, "recordToLog     = True                      # True, False")

@@ -178,6 +178,7 @@ numSign = 65
 #                   Step 2: Analysis for Design
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 fa.replace_line('MAIN.py', 31, "linearity       = True")
+fa.replace_line('MAIN.py', 32, "typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
 t_EAna_i    = time.time()
 print(f"{'='*numSign}\nElastic Analysis Started.\n{'='*numSign}\n")
@@ -314,6 +315,7 @@ print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 # EIeff_Ten   = 7.7e9   *kip*inch **2
 # EIeff_Com   = 1.81e10 *kip*inch **2
 fa.replace_line('MAIN.py', 31, "linearity       = False")
+fa.replace_line('MAIN.py', 32, "typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
 t_IEAna_i   = time.time()
 print(f"{'='*numSign}\nInelastic Analysis Started.\n{'='*numSign}\n")

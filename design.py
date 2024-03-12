@@ -198,14 +198,10 @@ ID = IDe *Cd
 if ID > ID_allowable:
     print(f"ID = {ID*100:.5f}% which is greater than {ID_allowable*100}%\nProgram exits here!"); sys.exit()
 else:
-    print(f"ID = {ID*100:.5f}%")
+    print(f"ID = {ID*100:.3f}%")
 
 
 # Loads 
-# SDloads = pd.read_excel(io="Input/Excel/Example.xlsx", sheet_name="Loads", 
-#                     usecols      = "A:D",
-#                     skiprows     = 5,
-#                     nrows        = 11)
 
 # Base Shear
 # V_base  = 879 *kip
@@ -219,14 +215,9 @@ for i in range(1, n_story+1):
         else:
             return (h_1 + (n-1) *h_typ)
     OTM += h(i) * Cvx[i] *V_base
-    # print(f"OTM = {OTM/kip/inch:.1f} kip-in")
-    # pass
 
-# OTM     = 890000 *kip*inch
 print(f"OTM = {OTM /1000:.1f} kN.m = {OTM/kip/inch:.1f} kip-in")
 print(f"V_base = {V_base /1000:.1f} kN = {V_base /kip:.1f} kip")
-# Coupling Beams Required Strength
-# Vr_CB   = 324 *kip # This is an average
 
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -264,29 +255,32 @@ Mpn_CB      = (C1 *(C_CB -t_pfCB /2) +
                C3 *((C_CB -t_pfCB) /2) + 
                T1 *(h_CB -C_CB -t_pfCB /2) + 
                T2 *((h_CB -C_CB) /2))
-Mn_CB       = Mpn_CB
+Mn_CB       = Mpn_CB # Assuming that the slenderness ratios in coupling beams are satisfied as per AISC
 Mn_CB_Fi_b  = Fi_b *Mn_CB
 print(f"Mn_CB*Fi_b = {Mn_CB_Fi_b /1000:.1f} kN.m")
 
 # 3-3   Check Strength Ratios
 """'''''''''''''''''''''''"""
+print(f"{'-'*numSign}\nCoupling Beams Strength Check\n{'-'*numSign}\n")
 # a)    Shear Strength
+print(f"===>>>Ratio = {R__V_CB:.2f}")
 R__V_CB     = Vu_CB /Vn_CB_Fi_v
 if R__V_CB >= 1.0:
     print("The Available Shear Strength of Coupling Beam is NOT SUFFICIENT!!!")
 elif 0.95 < R__V_CB < 1.0:
     print("The Available Shear Strength of Coupling Beam is OK")
 else:
-    print(f"The Available Shear Strength of Coupling Beam is OK but NOT OPTIMUM: \n===>>>Ratio = {R__V_CB:.2f}")
+    print("The Available Shear Strength of Coupling Beam is OK but NOT OPTIMUM!")
 
 # b)    Flexural Strength
 R__M_CB     = Mu_CB /Mn_CB_Fi_b
+print(f"===>>>Ratio = {R__M_CB:.2f}")
 if R__M_CB > 1.0:
     print("The Available Flexural Strength of Coupling Beam is NOT SUFFICIENT!!!")
 elif 0.95 < R__M_CB <= 1.0:
     print("The Available Flexural Strength of Coupling Beam is OK")
 else:
-    print(f"The Available Flexural Strength of Coupling Beam is OK but NOT OPTIMUM: \n===>>>Ratio = {R__M_CB:.2f}")
+    print("The Available Flexural Strength of Coupling Beam is OK but NOT OPTIMUM!")
 
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -304,10 +298,11 @@ print(f"Pu = {Pu /1000:.1f} kN")
 # b)    Required Shear Strength
 V_amp   = 4 *V_base
 print(f"V_amp = {V_amp /1000:.1f} kN")
-Vu      = V_amp /2
+nWalls  = 2
+Vu      = V_amp /nWalls
 print(f"Vu = {Vu /1000:.1f} kN")
 
-# c)    Required Flexural Strength All Walls
+# c)    Required Flexural Strength for All Walls
 gamma1      = (n_story *(1.2 *M_exp)) /(n_story *Mu_CB)
 Mu_Both     = gamma1 *OTM -Pu *L_eff
 print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
@@ -433,6 +428,7 @@ print("\n")
 
 # 4-3   Check Strength Ratios
 """'''''''''''''''''''''''"""
+print(f"{'-'*numSign}\nShear Walls Strength Check\n{'-'*numSign}\n")
 # a)    Axial Strength
 # a.1)  Tensile Strength
 R__P_Twall  = Pu/Pn_T_Fi_t

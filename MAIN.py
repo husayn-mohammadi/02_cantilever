@@ -29,7 +29,7 @@ modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
 linearity       = False
-typeBuild       = 'CantileverColumn'            # 'coupledWalls', 'CantileverColumn', 'CantileverBeam', 'buildBeam', 'ShearCritBeam'
+typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
 typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
 
@@ -42,7 +42,7 @@ SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
 incrMono        = 0.5*((H_typical*n_story)/4000)
 numIncrInit     = 5
-drift           = 0.01
+drift           = 0.02
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
@@ -80,7 +80,8 @@ plot_Analysis   = True
 plot_StressStrain=False
 plot_section    = False
 typeSpring      = "elastic"  # "elastic", "IMK_Pinching"
-Pu_1wall        = -load["wallG"]
+Pu_1wall        = -load['wallG']
+# Pu_1wall        = -load['wallG']
 #=============================================================================
 #    MAIN
 #=============================================================================

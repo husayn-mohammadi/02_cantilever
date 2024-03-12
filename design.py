@@ -263,8 +263,8 @@ print(f"Mn_CB*Fi_b = {Mn_CB_Fi_b /1000:.1f} kN.m")
 """'''''''''''''''''''''''"""
 print(f"{'-'*numSign}\nCoupling Beams Strength Check\n{'-'*numSign}\n")
 # a)    Shear Strength
-print(f"===>>>Ratio = {R__V_CB:.2f}")
 R__V_CB     = Vu_CB /Vn_CB_Fi_v
+print(f"===>>>Ratio = {R__V_CB:.2f}")
 if R__V_CB >= 1.0:
     print("The Available Shear Strength of Coupling Beam is NOT SUFFICIENT!!!")
 elif 0.95 < R__V_CB < 1.0:
@@ -311,6 +311,8 @@ print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 # EIeff_Com   = 1.81e10 *kip*inch **2
 fa.replace_line('MAIN.py', 31, "linearity       = False")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
+fa.replace_line('MAIN.py', 43, "incrMono        = 0.5*((H_typical)/4000)")
+fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical)")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
 
 # Run Nonlinear Cross-ectional Analysis on Compression Wall
@@ -329,6 +331,8 @@ print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Tension Wall Started
 fa.replace_line('MAIN.py', 83, "Pu_1wall        = Pu")
 exec(open("MAIN.py").read()) 
 fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
+fa.replace_line('MAIN.py', 43, "incrMono        = 0.5*((H_typical*n_story)/4000)")
+fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
 EIeff_Com   = EIeff_walls[0]
 t_IEAna_f   = time.time()
 dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60

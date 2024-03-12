@@ -40,9 +40,9 @@ numSegWall      = 7                         # If numSegWall=0, the model will be
 numSegBeam      = 15
 SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
-incrMono        = 1*((H_typical*n_story)/4000)
-numIncrInit     = 2
-drift           = 0.005
+incrMono        = 0.5*((H_typical*n_story)/4000)
+numIncrInit     = 5
+drift           = 0.01
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono

@@ -40,7 +40,7 @@ linearity = 1
 #_______________________IMK+Pinching_Hinge_Properties________________________#
 # K0          = 12 *EIeff /L **3 Should be given in the FuncModel.py
 C_K0        = 17
-My_Plus     = 7500 *kN*m
+My_Plus     = 4500 *kN*m
 My_Neg      = -1 *My_Plus
 as_Plus     = as_Neg      = 0.00000005
 FprPos      = FprNeg      = A_pinch     = 0.7
@@ -72,7 +72,7 @@ t_pfCB      = 0.015     *m
 t_pwCB      = t_pfCB
 
 b           = 114*mm
-NfibeY      = 15
+NfibeY      = 10
 
 Section = {
     'wall': { # C-PSW/CF Wall Section
@@ -98,16 +98,17 @@ Section = {
 #=============================================================================
 #    Frame Data:
 #=============================================================================
-n_story         = 8
+n_story         = 1
 H_typical       = 14        *ft
 H_first         = 17        *ft
-L_CB            = 2.4384    *m
+L_CB            = 4         *m
 LDR_CB          = L_CB /H_CB; print(f"LDR_CB = {LDR_CB:.3f}")
 L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
 L_Bay_List      = 2*[L_Bay]#, 5.*m, 5.*m, 5.*m]        # [*LBays]
 
-L               = L_CB /1
+# L               = L_CB /1
+L               = H_first
 
 # Building Geometry
 Lf              = 200   *ft

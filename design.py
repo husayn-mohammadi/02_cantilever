@@ -179,7 +179,10 @@ numSign = 65
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 fa.replace_line('MAIN.py', 31, "linearity       = True")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
+fa.replace_line('MAIN.py', 43, "incrMono        = 0.5*((H_typical*n_story)/4000)")
+fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
 t_EAna_i    = time.time()
 print(f"{'='*numSign}\nElastic Analysis Started.\n{'='*numSign}\n")
 exec(open("MAIN.py").read()) 
@@ -289,6 +292,7 @@ else:
 
 # 4-1   Calculate Required Strength
 """'''''''''''''''''''''''''''''"""
+print(f"{'-'*numSign}\nCalculate Required Strength of Composite Walls\n{'-'*numSign}\n")
 # a)    Required Axial Strength
 Vn_Mp_exp   = 2 *(1.2 *M_exp) /L_CB
 print(f"Vn_Mp_exp = {Vn_Mp_exp /1000:.1f} kN")
@@ -318,9 +322,9 @@ fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
 # Run Nonlinear Cross-ectional Analysis on Compression Wall
 t_IEAna_i   = time.time()
 print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Compression Wall Started.\n{'='*numSign}\n")
-fa.replace_line('MAIN.py', 83, "Pu_1wall        = -Pu")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = -Pu") # After -Pu there should be a +load["wallG"]
 exec(open("MAIN.py").read()) 
-EIeff_Ten   = EIeff_walls[0]
+EIeff_Com   = EIeff_walls[0]
 t_IEAna_f   = time.time()
 dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60
 print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Compression Wall Finished in {dur_IEAna:.2f} mins.\n{'='*numSign}\n")
@@ -328,16 +332,22 @@ print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Compression Wall Fin
 # Run Nonlinear Cross-ectional Analysis on Tension Wall
 t_IEAna_i   = time.time()
 print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Tension Wall Started.\n{'='*numSign}\n")
-fa.replace_line('MAIN.py', 83, "Pu_1wall        = Pu")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = Pu") # After Pu there should be a +load["wallG"]
 exec(open("MAIN.py").read()) 
-fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
-fa.replace_line('MAIN.py', 43, "incrMono        = 0.5*((H_typical*n_story)/4000)")
-fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
-EIeff_Com   = EIeff_walls[0]
+EIeff_Ten   = EIeff_walls[0]
 t_IEAna_f   = time.time()
 dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60
 print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Tension Wall  Finished in {dur_IEAna:.2f} mins.\n{'='*numSign}\n")
+fa.replace_line('MAIN.py', 43, "incrMono        = 0.5*((H_typical*n_story)/4000)")
+fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
 
+print(f"{'-'*numSign}\nCalculate Required Strength of Composite Walls\n{'-'*numSign}\n")
+print(f"Vn_Mp_exp = {Vn_Mp_exp /1000:.1f} kN")
+print(f"Pu = {Pu /1000:.1f} kN")
+print(f"V_amp = {V_amp /1000:.1f} kN")
+print(f"Vu = {Vu /1000:.1f} kN")
+print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 
 # The portion of the overturning moment resisted by the individual wall is
 Mu_T        = (EIeff_Ten /(EIeff_Ten +EIeff_Com)) *Mu_Both
@@ -349,6 +359,7 @@ print(f"Mu_C = {Mu_C /1000:.1f} kN.m")
 
 # 4-2   Calculate Available Strength 
 """''''''''''''''''''''''''''''''"""
+print(f"{'-'*numSign}\nCalculate Available Strength of Composite Walls\n{'-'*numSign}\n")
 # a)    Axial Strength
 # a.1)  Tensile Strength
 Pn_T        = Fy *As
@@ -433,7 +444,7 @@ print("\n")
 
 # 4-3   Check Strength Ratios
 """'''''''''''''''''''''''"""
-print(f"{'-'*numSign}\nShear Walls Strength Check\n{'-'*numSign}\n")
+print(f"{'-'*numSign}\nCheck Strength Ratios of Composite Walls\n{'-'*numSign}\n")
 # a)    Axial Strength
 # a.1)  Tensile Strength
 R__P_Twall  = Pu/Pn_T_Fi_t

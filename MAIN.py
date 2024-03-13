@@ -42,7 +42,7 @@ SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
 incrMono        = 0.5*((H_typical*n_story)/4000)
 numIncrInit     = 5
-drift           = 0.02
+drift           = 0.01
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono

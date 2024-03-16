@@ -177,7 +177,7 @@ for types in typeAnalysis:
         else:
             plot_Analysis       = False
             plot_StressStrain   = False
-            T1, driftMaximum, V_base, Vr_CB = fa.pushoverLCF(tagNodeControl, tagNodeBase, tagEleListToRecord_beam)
+            T1, driftMaximum, V_base, Vr_CB = fa.pushoverLCF(tagNodeControl, tagNodeBase, tagEleListToRecord_beam, S_MS, S_M1)
             print(f"driftMax = {driftMaximum*100:.5f}%")
         
         if plot_loaded == True:

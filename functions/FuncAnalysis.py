@@ -32,10 +32,10 @@ def rayleighDamping(zeta):
     # rayleigh(alphaM, betaK, betaKinit, betaKcomm)
     ops.rayleigh(alphaM, 0.0, betaKinit, 0.0)
 
-def Sa(T):
+def Sa(T,S_MS=1.5, S_M1=0.9):
     Method  = 1
-    S_MS    = 1.5; S_DS = 2/3 *S_MS
-    S_M1    = 0.9; S_D1 = 2/3 *S_M1
+    S_DS    = 2/3 *S_MS
+    S_D1    = 2/3 *S_M1
     Ts      = S_D1/S_DS
     T0      = 0.2 *Ts
     TL      = 8
@@ -371,11 +371,11 @@ def calcDrift(tagNodeLoad, tagNodeBase, dofNodeControl):
         driftMax=driftAve= abs(dispTop - dispBot)/height
     return driftMax, driftAve
 
-def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList):
+def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList, S_MS=1.5, S_M1=0.9):
     t_beg           = time.time()
     T1              = analyzeEigen(3, True)[0]
     Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
-    C_V_base        = Sa(T1) /(R /Ie)
+    C_V_base        = Sa(T1, S_MS, S_M1) /(R /Ie)
     V_base          = C_V_base *We
     dofNodeControl  = 1
     tagTSLinear     = 2

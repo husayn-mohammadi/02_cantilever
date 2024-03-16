@@ -189,7 +189,7 @@ exec(open("MAIN.py").read())
 t_EAna_f    = time.time()
 dur_EAna    = (t_EAna_f - t_EAna_i)/60
 print(f"{'='*numSign}\nElastic Analysis Finished in {dur_EAna:.2f} mins.\n{'='*numSign}\n")
-
+# print(f"V_base = {V_base/kip:.3f} kip"); sys.exit(); 
 # Effective distance between wall centroids
 L_eff   = L_CB +Lw
 
@@ -207,7 +207,6 @@ else:
 # Loads 
 
 # Base Shear
-# V_base  = 879 *kip
 Cvx     = fa.verDistFact(We, T1, h_1, h_typ, n_story)
 
 OTM     = 0
@@ -221,7 +220,7 @@ for i in range(1, n_story+1):
 
 print(f"OTM = {OTM /1000:.1f} kN.m = {OTM/kip/inch:.1f} kip-in")
 print(f"V_base = {V_base /1000:.1f} kN = {V_base /kip:.1f} kip")
-
+# sys.exit()
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 3: Design of Coupling Beams
@@ -304,7 +303,7 @@ V_amp   = 4 *V_base
 print(f"V_amp = {V_amp /1000:.1f} kN")
 nWalls  = 2
 Vu      = V_amp /nWalls
-print(f"Vu = {Vu /1000:.1f} kN")
+print(f"Vu_wall = {Vu /1000:.1f} kN")
 
 # c)    Required Flexural Strength for All Walls
 gamma1      = (n_story *(1.2 *M_exp)) /(n_story *Mu_CB)
@@ -343,10 +342,11 @@ fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
 fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
 
 print(f"{'-'*numSign}\nCalculate Required Strength of Composite Walls\n{'-'*numSign}\n")
+print(f"Vu_CB = {Vu_CB /1000:.1f} kN")
 print(f"Vn_Mp_exp = {Vn_Mp_exp /1000:.1f} kN")
 print(f"Pu = {Pu /1000:.1f} kN")
 print(f"V_amp = {V_amp /1000:.1f} kN")
-print(f"Vu = {Vu /1000:.1f} kN")
+print(f"Vu_wall = {Vu /1000:.1f} kN")
 print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 
 # The portion of the overturning moment resisted by the individual wall is
@@ -454,7 +454,7 @@ if R__P_Twall > 1.0:
 elif 0.95 < R__P_Twall <= 1.0:
     print("The Available Tensile Strength of Tension Wall is OK")
 else:
-    print("The Available Tensile Strength of Tension Wall is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R__P_Twall*100:.1f}%")
+    print("The Available Tensile Strength of Tension Wall is OK, but NOT OPTIMUM!")
 
 
 # a.2)  Compressive Strength
@@ -465,7 +465,7 @@ if R__P_Cwall > 1.0:
 elif 0.95 < R__P_Cwall <= 1.0:
     print("The Available Compressive Strength of Compression Wall is OK")
 else:
-    print("The Available Compressive Strength of Compression Wall is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R__P_Cwall*100:.1f}%")
+    print("The Available Compressive Strength of Compression Wall is OK, but NOT OPTIMUM!")
 
 # b)    Shear Strength
 R__V_wall   = Vu /Vn_Fi_v
@@ -475,7 +475,7 @@ if R__V_wall > 1.0:
 elif 0.95 < R__V_wall <= 1.0:
     print("The Available Shear Strength of Walls is OK")
 else:
-    print("The Available Shear Strength of Walls is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R__V_wall*100:.1f}%")
+    print("The Available Shear Strength of Walls is OK, but NOT OPTIMUM!")
 
 # c)    Flextural Strength
 # c.1)  Flexural Strength of Tension SpeedCore Wall
@@ -486,7 +486,7 @@ if R_M_Twall > 1.0:
 elif 0.95 < R_M_Twall <= 1.0:
     print("The Available Flexural Strength of Tension Wall is OK")
 else:
-    print("The Available Flexural Strength of Tension Wall is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R_M_Twall*100:.1f}%")
+    print("The Available Flexural Strength of Tension Wall is OK, but NOT OPTIMUM!")
 
 # c.2)  Flexural Strength of Compression SpeedCore Wall
 R__M_Cwall   = Mu_C/Mn_C_Fi_b
@@ -496,7 +496,7 @@ if R__M_Cwall > 1.0:
 elif 0.95 < R__M_Cwall <= 1.0:
     print("The Available Flexural Strength of Compression Wall is OK")
 else:
-    print("The Available Flexural Strength of Compression Wall is OK, but NOT OPTIMUM!")# \n===>>>Ratio = {R__M_Cwall*100:.1f}%")
+    print("The Available Flexural Strength of Compression Wall is OK, but NOT OPTIMUM!")
 
 
 

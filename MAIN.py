@@ -157,8 +157,6 @@ for types in typeAnalysis:
     
     # Run Lateral Loading Analysis Results 
     if types == 'monotonic':
-        # if True:
-        # if False:
         if linearity == False:
             start_time_monotonic = time.time()
             print("\n\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
@@ -177,16 +175,6 @@ for types in typeAnalysis:
             print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
         
         else:
-        # if linearity == True:
-        # if False:
-            # tagNodeLoadH = []
-            # if type(tagNodeLoad) == dict:
-            #     for tagNode in tagNodeLoad['wall']:
-            #         tagCoordX = f"{tagNode}"[-3:-1]
-            #         if tagCoordX == '00':
-            #             tagNodeLoadH.append(tagNode)
-            # elif type(tagNodeLoad) == int:
-            #     tagNodeLoadH = tagNodeLoad
             plot_Analysis       = False
             plot_StressStrain   = False
             T1, driftMaximum, V_base, Vr_CB = fa.pushoverLCF(tagNodeControl, tagNodeBase, tagEleListToRecord_beam)

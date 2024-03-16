@@ -55,15 +55,12 @@ def Sa(T):
     return Sa
 
 def verDistFact(We, T, h_1, h_typ, n_story):
-    TList   = [0.5, 2.5]
-    kList   = [1, 2]
     if 0 <= T < 0.5:
         k = 1
     elif T >= 2.5:
         k = 2
     else:
-        # k = 0.5 *(T -0.5) +1
-        k = np.interp(T, TList, kList)
+        k = 0.5 *(T -0.5) +1
     def h(n):
         if n == 1:
             return h_1

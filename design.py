@@ -155,7 +155,9 @@ Vn_Mp_exp   = 2 *(1.2 *M_exp) /L_CB
 print(f"Vn_Mp_exp = {Vn_Mp_exp /1000:.1f} kN")
 Pu_exp_CB   = n_story *Vn_Mp_exp
 print(f"Pu_exp_CB = {Pu_exp_CB /1000:.1f} kN")
+Pu_T        =  Pu_exp_CB -load['wallG'] *n_story #!!!
 print(f"Pu_T = {Pu_T /1000:.1f} kN")
+Pu_C        = -Pu_exp_CB -load['wallG'] *n_story #!!!
 print(f"Pu_C = {Pu_C /1000:.1f} kN")
 
 # b)    Required Shear Strength

@@ -15,6 +15,9 @@ R       = 8
 Omega0  = 2.5
 Rho     = 1.
 
+S_MS    = 1.75
+S_M1    = 1.01
+
 # Composite wall resistance factor
 Fi_v = Fi_b = Fi_c = Fi_t = 0.9
 
@@ -24,15 +27,17 @@ Fi_v = Fi_b = Fi_c = Fi_t = 0.9
 #    Material Properties
 #=============================================================================
 # Material
-Es      = 200       *GPa
-Gs      = 77.2      *GPa
-Fy      = 420       *MPa
-Fu      = 470       *MPa
+# Es      = 200       *GPa
+Es      = 29000 *ksi
+# Gs      = 77.2      *GPa
+Gs      = 11200 *ksi
+Fy      = 50 *ksi
+Fu      = 65 *ksi
 Ry      = 1.1
 
-fpc     = 45        *MPa
-Ec      = 31026     *MPa
-Gc      = 12410.6   *MPa
+fpc     = 6 *ksi
+Ec      = 4500 *ksi
+Gc      = 1800 *ksi
 Rc      = 1.3
 
 linearity = 1
@@ -56,20 +61,22 @@ D_Plus      = D_Neg       = 0.5
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 3.3330    *m
-H_CB        = 0.6096    *m
-bf          = 0.6096    *m
-tw          = 0.0142875 *m
+Hw          = 132 *inch
+H_CB        = 24 *inch
+# L_CB        = 96  *inch
+L_CB        = 360 *inch - 2*Hw
+bf          = 24 *inch
+tw          = 9/16 *inch
 RhoW        = 2 *tw /bf
-tf          = tw
-tc          = bf - 2*tw
-t_sc        = tc + 2*tw
+tf          = tw          
+tc          = 22.875  *inch
+t_sc        = 2*tw + tc
 btie        = 0.3048    *m # Vertical Spacing
 Stie        = 0.3048    *m # Horizontal Spacing
 dtie        = 0.0254    *m
 lsr         = btie/tw
-t_pfCB      = 0.015     *m
-t_pwCB      = t_pfCB
+t_pfCB      = 0.5  *inch
+t_pwCB      = 3/8  *inch
 
 b           = 114*mm
 NfibeY      = 10
@@ -79,8 +86,8 @@ Section = {
         #tags       = [tagSec, tagMatStFlange, tagMatStWeb, tagMatCtUnconf, tagMatCtConf]
         'tags'      : [1,      1,              2,           3,              4           ],
         #propStPart = [B,      H,         Es,      Fy,      Fu,      eps_sh, eps_ult, nu,   alpha, beta, gamma, Cf,  a1,  limit] 
-        'propWeb'   : [tw,     Hw,        Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
-        'propFlange': [bf,     tf,        Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propWeb'   : [tw,     Hw,        Es,      Fy,      Fu,      0.007,  0.2,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propFlange': [bf,     tf,        Es,      Fy,      Fu,      0.007,  0.2,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
         #propCore   = [tc,     fpc,       wc,      lamConf, lamUnconf]
         'propCore'  : [tc,     fpc,       0.2*mm,  0.05,     0.25    ]
     },
@@ -101,7 +108,6 @@ Section = {
 n_story         = 8
 H_typical       = 14        *ft
 H_first         = 17        *ft
-L_CB            = 4         *m
 LDR_CB          = L_CB /H_CB; print(f"LDR_CB = {LDR_CB:.3f}")
 L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
@@ -126,9 +132,9 @@ ALR             = 0.02  # Axial Load Ratio
 Py              = ALR * Pno
 #   Frame Loads
 load            = {}
-DL_Floor        = 12    *psf #90 *psf
+DL_Floor        = 120    *psf #90 *psf
 DL_PWalls       = 0 #25 *psf
-LL_Floor        = 50    *psf
+LL_Floor        = 0 #50    *psf
 LL_Roof         = 0 #20 *psf
 
 ##  Tributary Loading
@@ -166,12 +172,15 @@ We      = (1.0 *DL  +0.25 *LL) *A_SFRS *n_story
 # Wall and Coupling Beam Sections
 Lw      = Hw
 b_CB    = bf
+b_cCB   = b_CB -2 *t_pwCB
+t_cCB   = b_CB -2 *t_pwCB
 h_CB    = H_CB
+h_cCB   = h_CB -2 *t_pfCB # Clear height of the web plate
 
 
 # Coupling Beam Properties
-As_CB   = 2 *t_pwCB *h_CB + 2 *t_pfCB *(b_CB -2 *t_pwCB)
-Ac_CB   = (b_CB -2 *t_pwCB) *(h_CB -2 *t_pfCB)
+As_CB   = 2 *t_pwCB *h_cCB + 2 *t_pfCB *b_CB
+Ac_CB   = (b_CB -2 *t_pwCB) *h_cCB
 Asw_CB  = 2 *h_CB *t_pwCB
 # Is_CB   = 2 *(1/12 *t_pwCB *h_CB **3 + 1/12 *(b_CB -2 *t_pwCB) *t_pfCB **3 +
 #             t_pfCB *(b_CB -2 *t_pwCB) *((h_CB -t_pfCB) /2) **2)
@@ -226,11 +235,9 @@ elif As > Asmax:
 lambdaP_fCB     = 2.37 *(Es /Ry /Fy) **0.5
 lambdaP_wCB     = 2.66 *(Es /Ry /Fy) **0.5
 
-b_cCB           = b_CB -2 *t_pwCB
 lambda_fCB      = b_cCB /t_pfCB
 R_lambda_fCB    = lambda_fCB/lambdaP_fCB
 
-h_cCB           = h_CB -2 *t_pfCB # Clear height of the web plate
 lambda_wCB      = h_cCB /t_pwCB
 R_lambda_wCB    = lambda_wCB/lambdaP_wCB
 
@@ -262,29 +269,44 @@ if R_lambda_tbs > 1.0:
 
 # 3. Check Shear Criticality of Coupling Beams
 """''''''''''''''''''''''''''''''''''''''''"""
-t_cCB   = b_CB -2 *t_pwCB
+def calc_C(fpc, Fy, tc, tw, tf, h, P=0, Ry=1, Rc=1):
+    if   P < 0:
+        print("Section is under compression.")
+    elif P > 0:
+        print("Section is under tension.")    
+    C = ((0.85 *Rc  *fpc *tc *tf +2 *tw *Ry *Fy *h -P)/
+         (0.85 *Rc  *fpc *tc     +4 *tw *Ry *Fy))
+    return C
+def calc_Mp(fpc, Fy, tc, tw, tf, h, bf, P=0, Ry=1, Rc=1):
+    y       = calc_C(fpc, Fy, tc, tw, tf, h, P, Ry, Rc)
+    C1 = T1 = bf *tf             *Ry *Fy
+    C2      = 2 *tw *(y -tf)     *Ry *Fy
+    C3      = tc    *(y -tf)     *Rc *(0.85 *fpc)
+    T2      = 2 *tw *(h -y - tf) *Ry *Fy
 
-C_CBexp = ((2 *t_pwCB *Ry *Fy*h_CB  +0.85 *Rc *fpc *t_cCB *t_pfCB)/
-           (4 *t_pwCB *Ry *Fy       +0.85 *Rc *fpc *t_cCB))
+    Mp = ( C1 *( y -tf     /2) 
+          +C2 *((y -tf)    /2) 
+          +C3 *((y -tf)    /2) 
+          +T1 *( h -y -tf  /2) 
+          +T2 *((h -y -tf) /2) 
+          -P *(h /2 -y))
+    return Mp
+
+C_CBexp = calc_C(fpc, Fy, t_cCB, t_pwCB, t_pfCB, h_CB, Ry=1.1, Rc=1.3)
 print(f"C_CBexp = {C_CBexp *1000:.1f} mm")
-C_1exp  = (b_CB -2 *t_pwCB) *t_pfCB *Ry *Fy
-C_2exp  = 2 *t_pwCB *C_CBexp *Ry *Fy
-C_3exp  = 0.85 *Rc *fpc *t_cCB *(C_CBexp -t_pfCB)
-T_1exp  = (b_CB -2 *t_pwCB) *t_pfCB *Ry *Fy
-T_2exp  = 2 *t_pwCB *(h_CB -C_CBexp) *Ry *Fy
-M_exp = (C_1exp *(C_CBexp -t_pfCB /2) +
-            C_2exp *(C_CBexp /2) +
-            C_3exp *((C_CBexp -t_pfCB) /2) +
-            T_1exp *(h_CB -C_CBexp -t_pfCB /2) +
-            T_2exp *((h_CB -C_CBexp) /2))
-V_exp    = 0.6 *Ry *Fy *Asw_CB +0.06 *Ac_CB *(Rc *fpc /MPa) **0.5 #!!! Take care NOT to put fpc in other units except MPa
+M_exp   = calc_Mp(fpc, Fy, t_cCB, t_pwCB, t_pfCB, h_CB, bf, Ry=1.1, Rc=1.3)
+V_exp   = 0.6 *Ry *Fy *Asw_CB +0.06 *Ac_CB *(Rc *fpc /MPa) **0.5 #!!! Take care NOT to put fpc in other units except MPa
 
 print(f"M_exp = {M_exp /1000:.1f} kN.m")
 print(f"V_exp = {V_exp /1000:.1f} kN")
 
 # Check Flexure-Criticality Condition
-if V_exp *L_CB /M_exp >= 2.6: 
-    print("Flexure-Criticality Confirmed!")
+if      V_exp *L_CB /M_exp >= 2.4: 
+    print("The Beams are Flexure-Critical.")
+elif    V_exp *L_CB /M_exp <= 1.6: 
+    print("The Beams are Shear-Critical.")
+else:
+    print(f"The Beams are Flexure-Shear-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}")
 
 
 

@@ -14,9 +14,9 @@ Ie      = 1.
 R       = 8
 Omega0  = 2.5
 Rho     = 1.
+SDC     = "Dmin"  # "Dmax", "Dmin"
 
-S_MS    = 1.75
-S_M1    = 1.01
+    
 
 # Composite wall resistance factor
 Fi_v = Fi_b = Fi_c = Fi_t = 0.9
@@ -77,6 +77,8 @@ dtie        = 0.0254    *m
 lsr         = btie/tw
 t_pfCB      = 0.5  *inch
 t_pwCB      = 3/8  *inch
+tc_CB       = tc
+bf_CB       = bf
 
 b           = 114*mm
 NfibeY      = 10
@@ -160,6 +162,12 @@ load["leaningColumnG"]= 1.2*DL_Leaning + 1.60*LL_Leaning  # This is for gravity 
 # load["leaningColumn"] = 0 * kip
 
 
+if SDC == "Dmax":
+    S_MS    = 1.5
+    S_M1    = 0.9
+else:
+    S_MS    = 0.75
+    S_M1    = 0.3
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 1: Input Data
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -171,29 +179,28 @@ We      = (1.0 *DL  +0.25 *LL) *A_SFRS *n_story
 
 # Wall and Coupling Beam Sections
 Lw      = Hw
-b_CB    = bf
-b_cCB   = b_CB -2 *t_pwCB
-t_cCB   = b_CB -2 *t_pwCB
+b_cCB   = bf_CB -2 *t_pwCB
+t_cCB   = bf_CB -2 *t_pwCB
 h_CB    = H_CB
 h_cCB   = h_CB -2 *t_pfCB # Clear height of the web plate
 
 
 # Coupling Beam Properties
-As_CB   = 2 *t_pwCB *h_cCB + 2 *t_pfCB *b_CB
-Ac_CB   = (b_CB -2 *t_pwCB) *h_cCB
+As_CB   = 2 *t_pwCB *h_cCB + 2 *t_pfCB *bf_CB
+Ac_CB   = tc_CB *h_cCB
 Asw_CB  = 2 *h_CB *t_pwCB
-# Is_CB   = 2 *(1/12 *t_pwCB *h_CB **3 + 1/12 *(b_CB -2 *t_pwCB) *t_pfCB **3 +
-#             t_pfCB *(b_CB -2 *t_pwCB) *((h_CB -t_pfCB) /2) **2)
-# Ic_CB   = 1/12 *(b_CB -2 *t_pwCB) *(h_CB -2 *t_pfCB) **3
+# Is_CB   = 2 *(1/12 *t_pwCB *h_CB **3 + 1/12 *(bf_CB -2 *t_pwCB) *t_pfCB **3 +
+#             t_pfCB *(bf_CB -2 *t_pwCB) *((h_CB -t_pfCB) /2) **2)
+# Ic_CB   = 1/12 *(bf_CB -2 *t_pwCB) *(h_CB -2 *t_pfCB) **3
 
 # EAuncrCB= 0.8 *(Es *As_CB +Ec *Ac_CB)
-# C3      = min(0.9, 0.45 +3 *(As_CB /b_CB/ h_CB))
+# C3      = min(0.9, 0.45 +3 *(As_CB /bf_CB/ h_CB))
 # EIeff_CB= 0.64 *(Es *Is_CB +C3 *Ec *Ic_CB)
 # GAv_CB  = Gs *Asw_CB + Gc *Ac_CB
 
 # Planar SpeedCore Wall Properties
-As      = tw *(2 *(Lw -2 *tw) + 2 *t_sc)
-Ac      = Lw *t_sc -As
+As      = 2 *(tw *(Lw -2 *tf) + tf *bf)
+Ac      =     tc *(Lw -2 *tf)
 Asw     = 2 *Lw *tw
 # Is      = (2 *(1/12 *tw *(Lw -2 *tw) **3) + 
 #            2 *(1/12 *t_sc *tw **3 + t_sc*tw *((Lw -tw) /2) **2))
@@ -213,8 +220,8 @@ rho_min  = 0.01
 rho_max  = 0.1
 
 # 1.1.  Coupling Beams
-As_CBmin = rho_min *b_CB *h_CB
-As_CBmax = rho_max *b_CB *h_CB
+As_CBmin = rho_min *bf_CB *h_CB
+As_CBmax = rho_max *bf_CB *h_CB
 if As_CB < As_CBmin: 
     print(f"Area of Steel is {abs(As_CBmin-As_CB)/As_CBmin*100:.1f}% less than minimum for Coupling Beams!!!")
 elif As_CB > As_CBmax:
@@ -292,9 +299,9 @@ def calc_Mp(fpc, Fy, tc, tw, tf, h, bf, P=0, Ry=1, Rc=1):
           -P *(h /2 -y))
     return Mp
 
-C_CBexp = calc_C(fpc, Fy, t_cCB, t_pwCB, t_pfCB, h_CB, Ry=1.1, Rc=1.3)
+C_CBexp = calc_C(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, Ry=1.1, Rc=1.3)
 print(f"C_CBexp = {C_CBexp *1000:.1f} mm")
-M_exp   = calc_Mp(fpc, Fy, t_cCB, t_pwCB, t_pfCB, h_CB, bf, Ry=1.1, Rc=1.3)
+M_exp   = calc_Mp(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, bf_CB, Ry=1.1, Rc=1.3)
 V_exp   = 0.6 *Ry *Fy *Asw_CB +0.06 *Ac_CB *(Rc *fpc /MPa) **0.5 #!!! Take care NOT to put fpc in other units except MPa
 
 print(f"M_exp = {M_exp /1000:.1f} kN.m")

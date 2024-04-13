@@ -112,9 +112,9 @@ Vn_CB_Fi_v  = Fi_v *Vn_CB
 print(f"Vn_CB*Fi_v = {Vn_CB_Fi_v /1000:.1f} kN")
 
 # b)    Flexural Strength
-C_CB        = calc_C(fpc, Fy, t_cCB, t_pwCB, t_pfCB, h_CB)
+C_CB        = calc_C(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB)
 print(f"C_CB = {C_CB *1000:.1f} mm")
-Mp_CB       = calc_Mp(fpc, Fy, tc, t_pwCB, t_pfCB, h_CB, bf)
+Mp_CB       = calc_Mp(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, bf_CB)
 Mn_CB       = Mp_CB # Assuming that the slenderness ratios in coupling beams are satisfied as per AISC
 Mn_CB_Fi_b  = Fi_b *Mn_CB
 print(f"Mn_CB*Fi_b = {Mn_CB_Fi_b /1000:.1f} kN.m")
@@ -231,8 +231,9 @@ print(f"Pn_T*Fi_t = {Pn_T_Fi_t /1000:.1f} kN")
 
 # a.2)    Compressive Strength
 Pno         = Fy *As +0.85 *fpc *Ac
+ACR_Design  = max(abs(Pu_C), abs(Pu_T)) /Pno # Axial Compression Ratio of Design Loads
 Is_minor    = (2 *(1/12 *(Lw -2 *tw) *tw **3 + (Lw -2 *tw) *tw *((t_sc -tw) /2) **2) + 2 *(1/12 *tw *t_sc **3))
-Ic_minor    = 1/12 *(Lw -2 *tw) *(t_sc -2 *tw) **3
+Ic_minor    = 1/12 *(Lw -2 *tw) *tc **3
 EIeff_minor = Es *Is_minor +0.35 *Ec *Ic_minor
 L_cr        = max(h_1, h_typ)
 Pe          = np.pi **2 *EIeff_minor /L_cr **2
@@ -282,7 +283,10 @@ print("\n")
 print(f"{'-'*numSign}\nCheck Strength Ratios of Composite Walls\n{'-'*numSign}\n")
 # a)    Axial Strength
 # a.1)  Tensile Strength
-R__P_Twall  = Pu_T /Pn_T_Fi_t
+if Pu_T > 0:
+    R__P_Twall  = Pu_T /Pn_T_Fi_t
+else:
+    R__P_Twall  = Pu_T /Pn_C_Fi_c
 print(f"\nR__P_Twall = {R__P_Twall *100:.1f}%")
 if R__P_Twall > 1.0:
     print("The Available Tensile Strength of Tension Wall is NOT OK!!!")
@@ -293,7 +297,10 @@ else:
 
 
 # a.2)  Compressive Strength
-R__P_Cwall  = Pu_C /Pn_C_Fi_c
+if Pu_C > 0:
+    R__P_Cwall  = Pu_C /Pn_T_Fi_t
+else:
+    R__P_Cwall  = Pu_C /Pn_C_Fi_c
 print(f"\nR__P_Cwall = {R__P_Cwall *100:.1f}%")
 if R__P_Cwall > 1.0:
     print("The Available Compressive Strength of Compression Wall is NOT OK!!!")
@@ -341,7 +348,7 @@ else:
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 M_couplingBeams     = L_eff * Pu_exp_CB
-M_all               = Mu_Both + M_couplingBeams
+M_all               = Mu_Both +M_couplingBeams
 R__coupling         = M_couplingBeams /M_all
 
 

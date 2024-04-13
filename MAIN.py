@@ -40,9 +40,9 @@ numSegWall      = 7                         # If numSegWall=0, the model will be
 numSegBeam      = 15
 SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
-incrMono        = 0.5*((H_typical*n_story)/4000)
-numIncrInit     = 5
-drift           = 0.01
+incrMono        = 2*((H_typical*n_story)/4250)
+numIncrInit     = 9
+drift           = 0.007
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
@@ -278,8 +278,8 @@ if recordToLog == True:
     sys.stdout.close()
     sys.stdout = sys.__stdout__
 
-winsound.Beep(440, 300)  # generate a 440Hz sound that lasts 300 milliseconds
-winsound.Beep(440, 300)
+winsound.Beep(440, 150)  # generate a 440Hz sound that lasts 300 milliseconds
+winsound.Beep(440, 150)
 
 
 

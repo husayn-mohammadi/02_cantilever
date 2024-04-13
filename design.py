@@ -1,4 +1,4 @@
-import sys, time
+import sys, time, winsound
 # import pandas as pd
 import numpy as np
 import functions.FuncAnalysis  as fa
@@ -48,7 +48,7 @@ numSign = 65
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 fa.replace_line('MAIN.py', 31, "linearity       = True")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
-fa.replace_line('MAIN.py', 43, "incrMono        = 0.5*((H_typical*n_story)/4000)")
+fa.replace_line('MAIN.py', 43, "incrMono        = 2*((H_typical*n_story)/4250)")
 fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
 fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
@@ -58,7 +58,7 @@ exec(open("MAIN.py").read())
 t_EAna_f    = time.time()
 dur_EAna    = (t_EAna_f - t_EAna_i)/60
 print(f"{'='*numSign}\nElastic Analysis Finished in {dur_EAna:.2f} mins.\n{'='*numSign}\n")
-
+# sys.exit()
 # Effective distance between wall centroids
 L_eff   = L_CB +Lw
 
@@ -68,7 +68,10 @@ ID_allowable = 0.02 # for example here for Risk Category II.
 IDe     = driftMaximum
 ID = IDe *Cd
 if ID > ID_allowable:
-    print(f"ID = {ID*100:.5f}% which is greater than {ID_allowable*100}%\nProgram exits here!"); sys.exit()
+    print(f"ID = {ID*100:.5f}% which is greater than {ID_allowable*100}%\nProgram exits here!")
+    time.sleep(2)
+    winsound.Beep(700, 1000)
+    sys.exit()
 else:
     print(f"ID = {ID*100:.3f}%")
 
@@ -170,14 +173,14 @@ print(f"Vu_wall = {Vu_wall /1000:.1f} kN")
 # c)    Required Flexural Strength for All Walls
 gamma1      = (n_story *(1.2 *M_exp)) /(n_story *Mu_CB)
 print(f"{gamma1 = }")
-Mu_Both     = gamma1 *OTM -Pu_exp_CB *L_eff
+Mu_Both     = gamma1 *OTM -Pu_exp_CB *L_eff #It can result in negative values. #!!!
 print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 
 # EIeff_Ten   = 7.7e9   *kip*inch **2
 # EIeff_Com   = 1.81e10 *kip*inch **2
 fa.replace_line('MAIN.py', 31, "linearity       = False")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
-fa.replace_line('MAIN.py', 43, "incrMono        = 0.5*((H_typical)/4000)")
+fa.replace_line('MAIN.py', 43, "incrMono        = 2*((H_typical)/4250)")
 fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical)")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = True")
 
@@ -200,7 +203,7 @@ EIeff_Ten   = EIeff_walls[0]
 t_IEAna_f   = time.time()
 dur_IEAna   = (t_IEAna_f - t_IEAna_i)/60
 print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Tension Wall  Finished in {dur_IEAna:.2f} mins.\n{'='*numSign}\n")
-fa.replace_line('MAIN.py', 43, "incrMono        = 0.5*((H_typical*n_story)/4000)")
+fa.replace_line('MAIN.py', 43, "incrMono        = 2*((H_typical*n_story)/4250)")
 fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
 fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
 

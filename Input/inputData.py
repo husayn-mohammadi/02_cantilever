@@ -27,10 +27,8 @@ Fi_v = Fi_b = Fi_c = Fi_t = 0.9
 #    Material Properties
 #=============================================================================
 # Material
-# Es      = 200       *GPa
-Es      = 29000 *ksi
-# Gs      = 77.2      *GPa
-Gs      = 11200 *ksi
+Es      = 200       *GPa
+Gs      = 77.2      *GPa
 Fy      = 50 *ksi
 Fu      = 65 *ksi
 Ry      = 1.1
@@ -61,22 +59,22 @@ D_Plus      = D_Neg       = 0.5
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 132 *inch
-H_CB        = 24 *inch
+Hw          = 4500 *mm
 # L_CB        = 96  *inch
-L_CB        = 360 *inch - 2*Hw
-bf          = 24 *inch
-tw          = 9/16 *inch
-RhoW        = 2 *tw /bf
-tf          = tw          
-tc          = 22.875  *inch
-t_sc        = 2*tw + tc
-btie        = 0.3048    *m # Vertical Spacing
-Stie        = 0.3048    *m # Horizontal Spacing
-dtie        = 0.0254    *m
-lsr         = btie/tw
-t_pfCB      = 0.5  *inch
-t_pwCB      = 3/8  *inch
+L_CB        = 15 *m -2 *Hw
+tw          = 20 *mm
+tc          = 960 *mm
+tf          = 20 *mm          
+bf          = 2*tf +tc
+t_sc        = 2*tw +tc
+RhoW        = 2 *tw /t_sc
+btie        = 240 *mm # Vertical Spacing
+Stie        = 300 *mm # Horizontal Spacing
+dtie        = 25 *mm
+lsr         = btie /tw
+H_CB        = 350 *mm
+t_pfCB      = 16.5 *mm
+t_pwCB      = 6 *mm
 tc_CB       = tc
 bf_CB       = bf
 
@@ -98,18 +96,18 @@ Section = {
         'tags'      : [2,      5,              6,           7,              8           ],
         #propStPart = [B,      H,         Es,      Fy,      Fu,      eps_sh, eps_ult, nu,   alpha, beta, gamma, Cf,  a1,  limit] 
         'propWeb'   : [t_pwCB, H_CB,      Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
-        'propFlange': [bf,     t_pfCB,    Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propFlange': [bf_CB,  t_pfCB,    Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
         #propCore   = [tc,     fpc,       wc,      lamConf, lamUnconf]
-        'propCore'  : [tc,     fpc,       0.2*mm,  0.05,     0.25     ]
+        'propCore'  : [tc_CB,  fpc,       0.2*mm,  0.05,     0.25     ]
     },
     }
 
 #=============================================================================
 #    Frame Data:
 #=============================================================================
-n_story         = 8
-H_typical       = 14        *ft
-H_first         = 17        *ft
+n_story         = 22
+H_typical       = 4.25      *m#14        *ft
+H_first         = 5.2       *m #17        *ft
 LDR_CB          = L_CB /H_CB; print(f"LDR_CB = {LDR_CB:.3f}")
 L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
@@ -134,9 +132,9 @@ ALR             = 0.02  # Axial Load Ratio
 Py              = ALR * Pno
 #   Frame Loads
 load            = {}
-DL_Floor        = 120    *psf #90 *psf
+DL_Floor        = 120   *psf #90 *psf
 DL_PWalls       = 0 #25 *psf
-LL_Floor        = 0 #50    *psf
+LL_Floor        = 50    *psf
 LL_Roof         = 0 #20 *psf
 
 ##  Tributary Loading

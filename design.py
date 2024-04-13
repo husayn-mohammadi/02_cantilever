@@ -365,6 +365,19 @@ print(f"OTM             = {OTM /1000:.1f} kN.m = {OTM/kip/inch:.1f} kip-in")
 # 01.04) Coupling Ratio
 print(f"Coupling Ratio  = {R__coupling *100:.1f}%")
 
+# 01.05) Axial Compression Ratio
+print(f"Design ACR      = {ACR_Design *100:.1f}%")
+
+# 01.06) Shear Steel Percentage
+print(f"Rho_wall        = {RhoW *100:.1f}%")
+
+# 01.07) Shear VS Flexure Criticality Condition
+if      V_exp *L_CB /M_exp >= 2.4: 
+    print("The Beams are Flexure-Critical.")
+elif    V_exp *L_CB /M_exp <= 1.6: 
+    print("The Beams are Shear-Critical.")
+else:
+    print(f"The Beams are Flexure-Shear-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}")
 
 #______________________________________________________________________________
 # 02) Coupling Beam Demand/Capacity Info
@@ -373,7 +386,7 @@ print(f"\n\n02) Coupling Beam Demand/Capacity Info\n{'_'*numSign}\n")
 # 02.01) Shear
 print(f"Vu_CB           = {Vu_CB /1000:.1f} kN")
 print(f"Vn_CB*Fi_v      = {Vn_CB_Fi_v /1000:.1f} kN")
-print(f"===>>>DCR_V_CB  = {R__V_CB *100:.1f}%")
+print(f"===>>>DCR_V_CB  = {abs(R__V_CB) *100:.1f}%")
 if R__V_CB >= 1.0:
     print("The Available Shear Strength of Coupling Beam is NOT SUFFICIENT!!!")
 elif 0.95 < R__V_CB < 1.0:
@@ -386,7 +399,7 @@ print(f"Vn_Mp_exp       = {Vn_Mp_exp /1000:.1f} kN")
 print(f"C_CB            = {C_CB *1000:.1f} mm")
 print(f"Mu_CB           = {Mu_CB /1000:.1f} kN.m")
 print(f"Mn_CB*Fi_b      = {Mn_CB_Fi_b /1000:.1f} kN.m")
-print(f"===>>>DCR_M_CB  = {R__M_CB *100:.1f}%")
+print(f"===>>>DCR_M_CB  = {abs(R__M_CB) *100:.1f}%")
 if R__M_CB > 1.0:
     print("The Available Flexural Strength of Coupling Beam is NOT SUFFICIENT!!!")
 elif 0.95 < R__M_CB <= 1.0:
@@ -394,6 +407,8 @@ elif 0.95 < R__M_CB <= 1.0:
 else:
     print("The Available Flexural Strength of Coupling Beam is OK but NOT OPTIMUM!")
 
+# 02.03) Pu_exp_CB
+print(f"Pu_exp_CB       = {Pu_exp_CB /1000:.1f} kN")
 
 #______________________________________________________________________________
 # 03) Composite Walls Demand/Capacity Info
@@ -402,7 +417,7 @@ print(f"\n\n03) Composite Walls Demand/Capacity Info\n{'_'*numSign}\n")
 # 03.01) Axial Force
 print(f"Pu_T            = {Pu_T /1000:.1f} kN")
 print(f"Pn_T*Fi_t       = {Pn_T_Fi_t /1000:.1f} kN")
-print(f"===>>>DCR_Twall = {R__P_Twall *100:.1f}%")
+print(f"===>>>DCR_Twall = {abs(R__P_Twall) *100:.1f}%")
 if R__P_Twall > 1.0:
     print("The Available Tensile Strength of Tension Wall is NOT OK!!!")
 elif 0.95 < R__P_Twall <= 1.0:
@@ -424,7 +439,7 @@ else:
 print(f"V_amp           = {V_amp /1000:.1f} kN")
 print(f"Vu_wall         = {Vu_wall /1000:.1f} kN")
 print(f"Vn*Fi_v         = {Vn_Fi_v /1000:.1f} kN")
-print(f"===>>>DCR_Vwall = {R__V_wall *100:.1f}%")
+print(f"===>>>DCR_Vwall = {abs(R__V_wall) *100:.1f}%")
 if R__V_wall > 1.0:
     print("The Available Shear Strength of Walls is NOT OK!!!")
 elif 0.95 < R__V_wall <= 1.0:
@@ -443,7 +458,7 @@ print(f"Tension Wall     Share of Moment = {(EIeff_Ten /(EIeff_Ten +EIeff_Com))*
 print(f"C_T             = {C_T *1000:.1f} mm")
 print(f"Mu_T            = {Mu_T /1000:.1f} kN.m")
 print(f"Mn_T*Fi_b       = {Mn_T_Fi_b /1000:.1f} kN.m")
-print(f"===>>>DCR_MTwall= {R_M_Twall *100:.1f}%")
+print(f"===>>>DCR_MTwall= {abs(R_M_Twall) *100:.1f}%")
 if R_M_Twall > 1.0:
     print("The Available Flexural Strength of Tension Wall is NOT OK!!!")
 elif 0.95 < R_M_Twall <= 1.0:
@@ -456,7 +471,7 @@ print(f"Compression Wall Share of Moment = {(EIeff_Com /(EIeff_Ten +EIeff_Com))*
 print(f"C_C             = {C_C *1000:.1f} mm")
 print(f"Mu_C            = {Mu_C /1000:.1f} kN.m")
 print(f"Mn_C*Fi_b       = {Mn_C_Fi_b /1000:.1f} kN.m")
-print(f"===>>>DCR_MCwall= {R__M_Cwall *100:.1f}%")
+print(f"===>>>DCR_MCwall= {abs(R__M_Cwall) *100:.1f}%")
 if R__M_Cwall > 1.0:
     print("The Available Flexural Strength of Compression Wall is NOT OK!!!")
 elif 0.95 < R__M_Cwall <= 1.0:

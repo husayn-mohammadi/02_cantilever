@@ -216,17 +216,17 @@ rho_max  = 0.1
 As_CBmin = rho_min *b_CB *h_CB
 As_CBmax = rho_max *b_CB *h_CB
 if As_CB < As_CBmin: 
-    print("Area of Steel is less than minimum for Coupling Beams!!!")
+    print(f"Area of Steel is {abs(As_CBmin-As_CB)/As_CBmin*100:.1f}% less than minimum for Coupling Beams!!!")
 elif As_CB > As_CBmax:
-    print("Area of Steel is greater than maximum for Coupling Beams!!!")
+    print(f"Area of Steel is {abs(As_CBmax-As_CB)/As_CBmax*100:.1f}% greater than maximum for Coupling Beams!!!")
 
 # 1.2.  SpeedCore Walls
 Asmin = rho_min *t_sc *Lw
 Asmax = rho_max *t_sc *Lw
 if As < Asmin: 
-    print("Area of Steel is less than minimum for Composite Walls!!!")
+    print("Area of Steel is {abs(Asmin-As)/Asmin*100:.1f}% less than minimum for Composite Walls!!!")
 elif As > Asmax:
-    print("Area of Steel is greater than maximum for Composite Walls!!!")
+    print("Area of Steel is {abs(Asmax-As)/Asmax*100:.1f}% greater than maximum for Composite Walls!!!")
 
 
 # 2. Check Plate Slenderness Ratios
@@ -302,11 +302,11 @@ print(f"V_exp = {V_exp /1000:.1f} kN")
 
 # Check Flexure-Criticality Condition
 if      V_exp *L_CB /M_exp >= 2.4: 
-    print("The Beams are Flexure-Critical.")
+    print(f"The Beams are Flexure-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}>2.4")
 elif    V_exp *L_CB /M_exp <= 1.6: 
-    print("The Beams are Shear-Critical.")
+    print(f"The Beams are Shear-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}<1.6")
 else:
-    print(f"The Beams are Flexure-Shear-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}")
+    print(f"The Beams are Flexure-Shear-Critical, since 1.6 < V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f} <2.4")
 
 
 

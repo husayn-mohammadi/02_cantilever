@@ -59,34 +59,46 @@ D_Plus      = D_Neg       = 0.5
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 4500 *mm
-# L_CB        = 96  *inch
-L_CB        = 15 *m -2 *Hw
-tw          = 20 *mm
-tc          = 960 *mm
-tf          = 20 *mm          
-bf          = 2*tf +tc
+Hw          = 5000 *mm
+# L_CB        = 2000 *mm
+L_eff       = 8000 *mm
+L_CB        = L_eff -Hw
+# L_CB        = 6.5 *m -2 *Hw
+tw          = 10 *mm
+tc          = 480 *mm
+tf          = tw
+# tf          = 50 *mm
+bf          = 2*tw +tc
 t_sc        = 2*tw +tc
 RhoW        = 2 *tw /t_sc
+
 btie        = 240 *mm # Vertical Spacing
-Stie        = 300 *mm # Horizontal Spacing
+Stie        = 250 *mm # Horizontal Spacing
 dtie        = 25 *mm
 lsr         = btie /tw
+t_pwCB      = 8 *mm
+t_pfCB      = 8 *mm
 H_CB        = 350 *mm
-t_pfCB      = 16.5 *mm
-t_pwCB      = 6 *mm
-tc_CB       = tc
-bf_CB       = bf
+# tc_CB       = tc
+# bf_CB       = bf
+tc_CB       = 400 *mm
+bf_CB       = tc_CB +2 *t_pwCB
+
+Lw      = Hw
+b_cCB   = bf_CB -2 *t_pwCB
+t_cCB   = bf_CB -2 *t_pwCB
+h_CB    = H_CB
+h_cCB   = h_CB -2 *t_pfCB # Clear height of the web plate
 
 b           = 114*mm
-NfibeY      = 10
+NfibeY      = 5
 
 Section = {
     'wall': { # C-PSW/CF Wall Section
         #tags       = [tagSec, tagMatStFlange, tagMatStWeb, tagMatCtUnconf, tagMatCtConf]
         'tags'      : [1,      1,              2,           3,              4           ],
         #propStPart = [B,      H,         Es,      Fy,      Fu,      eps_sh, eps_ult, nu,   alpha, beta, gamma, Cf,  a1,  limit] 
-        'propWeb'   : [tw,     Hw,        Es,      Fy,      Fu,      0.007,  0.2,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propWeb'   : [tw,     (Hw-2*tf), Es,      Fy,      Fu,      0.007,  0.2,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
         'propFlange': [bf,     tf,        Es,      Fy,      Fu,      0.007,  0.2,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
         #propCore   = [tc,     fpc,       wc,      lamConf, lamUnconf]
         'propCore'  : [tc,     fpc,       0.2*mm,  0.05,     0.25    ]
@@ -95,7 +107,7 @@ Section = {
         #tags       = [tagSec, tagMatStFlange, tagMatStWeb, tagMatCtUnconf, tagMatCtConf]
         'tags'      : [2,      5,              6,           7,              8           ],
         #propStPart = [B,      H,         Es,      Fy,      Fu,      eps_sh, eps_ult, nu,   alpha, beta, gamma, Cf,  a1,  limit] 
-        'propWeb'   : [t_pwCB, H_CB,      Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propWeb'   : [t_pwCB, h_cCB,     Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
         'propFlange': [bf_CB,  t_pfCB,    Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
         #propCore   = [tc,     fpc,       wc,      lamConf, lamUnconf]
         'propCore'  : [tc_CB,  fpc,       0.2*mm,  0.05,     0.25     ]
@@ -175,21 +187,15 @@ LL      = LL_Floor +LL_Roof
 
 We      = (1.0 *DL  +0.25 *LL) *A_SFRS *n_story
 
-# Wall and Coupling Beam Sections
-Lw      = Hw
-b_cCB   = bf_CB -2 *t_pwCB
-t_cCB   = bf_CB -2 *t_pwCB
-h_CB    = H_CB
-h_cCB   = h_CB -2 *t_pfCB # Clear height of the web plate
 
 
 # Coupling Beam Properties
 As_CB   = 2 *t_pwCB *h_cCB + 2 *t_pfCB *bf_CB
 Ac_CB   = tc_CB *h_cCB
 Asw_CB  = 2 *h_CB *t_pwCB
-# Is_CB   = 2 *(1/12 *t_pwCB *h_CB **3 + 1/12 *(bf_CB -2 *t_pwCB) *t_pfCB **3 +
-#             t_pfCB *(bf_CB -2 *t_pwCB) *((h_CB -t_pfCB) /2) **2)
-# Ic_CB   = 1/12 *(bf_CB -2 *t_pwCB) *(h_CB -2 *t_pfCB) **3
+# Is_CB   = 2 *(1/12 *t_pwCB *h_cCB **3 + 1/12 *bf_CB *t_pfCB **3 +
+#               t_pfCB *bf_CB *(h_cCB /2 +t_pfCB /2) **2)
+# Ic_CB   = 1/12 *tc_CB *h_CB **3
 
 # EAuncrCB= 0.8 *(Es *As_CB +Ec *Ac_CB)
 # C3      = min(0.9, 0.45 +3 *(As_CB /bf_CB/ h_CB))
@@ -200,9 +206,9 @@ Asw_CB  = 2 *h_CB *t_pwCB
 As      = 2 *(tw *(Lw -2 *tf) + tf *bf)
 Ac      =     tc *(Lw -2 *tf)
 Asw     = 2 *Lw *tw
-# Is      = (2 *(1/12 *tw *(Lw -2 *tw) **3) + 
-#            2 *(1/12 *t_sc *tw **3 + t_sc*tw *((Lw -tw) /2) **2))
-# Ic      = 1/12 * (t_sc -2 *tw) * (Lw -2 *tw) **3
+# Is      = (2 *(1/12 *tw *(Lw -2 *tf) **3) + 
+#            2 *(1/12 *bf *tf **3 + bf *tf *(Lw /2 +tf /2) **2))
+# Ic      = 1/12 * tc * (Lw -2 *tw) **3
 
 # EAeff   = Es *As  +0.45 *Ec *Ac
 # EIeff   = Es *Is  +0.35 *Ec *Ic
@@ -229,9 +235,9 @@ elif As_CB > As_CBmax:
 Asmin = rho_min *t_sc *Lw
 Asmax = rho_max *t_sc *Lw
 if As < Asmin: 
-    print("Area of Steel is {abs(Asmin-As)/Asmin*100:.1f}% less than minimum for Composite Walls!!!")
+    print(f"Area of Steel is {abs(Asmin-As)/Asmin*100:.1f}% less than minimum for Composite Walls!!!")
 elif As > Asmax:
-    print("Area of Steel is {abs(Asmax-As)/Asmax*100:.1f}% greater than maximum for Composite Walls!!!")
+    print(f"Area of Steel is {abs(Asmax-As)/Asmax*100:.1f}% greater than maximum for Composite Walls!!!")
 
 
 # 2. Check Plate Slenderness Ratios

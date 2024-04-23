@@ -66,32 +66,6 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
     
     #       Define Elements
 #_____________________________________________________________________________________________________________________
-    ##      Define Nonlinear Elements
-    # for i in range(0, numSeg):
-        
-    #     ops.node(i+1+tagNodeFndn, 0., ((i+1)/numSeg)*PlasticHingeLength)
-        
-    #     if typeEle == 'forceBeamColumn':
-    #         #   element('forceBeamColumn', eleTag,   *eleNodes,                         transfTag,   integrationTag, '-iter', maxIter=10, tol=1e-12, '-mass', mass=0.0)
-    #         ops.element('forceBeamColumn', i+1,      *[i+tagNodeFndn, i+1+tagNodeFndn], tagGTPDelta, tags[0],         '-iter', 100,    1e-6)
-    #     elif typeEle == 'dispBeamColumn':
-    #           # element('dispBeamColumn',  eleTag,   *eleNodes,                         transfTag,   integrationTag, '-cMass', '-mass', mass=0.0)
-    #         ops.element('dispBeamColumn',  i+1,      *[i+tagNodeFndn, i+1+tagNodeFndn], tagGTPDelta, tags[0])
-    #         # ops.element('elasticBeamColumn',i+1,     *[i+tagNodeFndn, i+1+tagNodeFndn], tags[0],tagGTPDelta)
-    #         # ops.element('elasticBeamColumn', i+1,     *[i+tagNodeFndn, i+1+tagNodeFndn], AA, EE, 1, tagGTLinear)
-    #     else:
-    #         print('UNKNOWN element type!!!');sys.exit()
-            
-    ##      Define Linear Element
-    # tagNodeTop  = numSeg + tagNodeFndn + 1
-    # ops.node(tagNodeTop, 0., L)
-    
-    # ops.element('dispBeamColumn',  numSeg+1, *[numSeg+tagNodeFndn, numSeg + tagNodeFndn + 1], tagGTPDelta, tags[0])
-    #   element('elasticBeamColumn', eleTag,   *eleNodes,                                       secTag, transfTag, <'-mass', mass>, <'-cMass'>, <'-release', releaseCode>)
-    # ops.element('elasticBeamColumn', numSeg+1, *[numSeg+tagNodeFndn, numSeg + tagNodeFndn + 1], tags[0], tagGTPDelta)
-    # ops.element('elasticBeamColumn', numSeg+1, *[numSeg+tagNodeFndn, numSeg + tagNodeFndn + 1], AA, EE, 1, tagGTLinear)
-
-#_____________________________________________________________________________________________________________________
     if typeSpring == "elastic": # For Distributed-Plasticity Model
     
         ##      Define the node at the top of the nonlinear element

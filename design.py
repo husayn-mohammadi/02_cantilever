@@ -71,7 +71,7 @@ if ID > ID_allowable:
     print(f"ID = {ID*100:.5f}% which is greater than {ID_allowable*100}%\nProgram exits here!")
     time.sleep(2)
     winsound.Beep(700, 1000)
-    sys.exit()
+    # sys.exit()
 else:
     print(f"ID = {ID*100:.3f}%")
 
@@ -155,9 +155,18 @@ else:
 print(f"{'-'*numSign}\nCalculate Required Strength of Composite Walls\n{'-'*numSign}\n")
 # a)    Required Axial Strength
 Vn_Mp_exp   = 2 *(1.2 *M_exp) /L_CB
+Vn_Vp_exp   = 1.2 *V_exp
 print(f"Vn_Mp_exp = {Vn_Mp_exp /1000:.1f} kN")
-Pu_exp_CB   = n_story *Vn_Mp_exp
-print(f"Pu_exp_CB = {Pu_exp_CB /1000:.1f} kN")
+print(f"Vn_Vp_exp = {Vn_Vp_exp /1000:.1f} kN")
+VMR         = V_exp *L_CB /M_exp
+if      VMR >= 2.4: 
+    Vinpl       = Vn_Mp_exp
+elif    VMR <= 1.6: 
+    Vinpl       = Vn_Vp_exp
+else:
+    Vinpl       = Vn_Vp_exp +(Vn_Mp_exp -Vn_Vp_exp) *(VMR -1.6) /(2.4 -1.6)
+Pu_exp_CB   = n_story *Vinpl
+print(f"Pu_exp_CB = {Pu_exp_CB /1000:.1f} kN")  
 Pu_T        =  Pu_exp_CB -load['wallG'] *n_story #!!!
 print(f"Pu_T = {Pu_T /1000:.1f} kN")
 Pu_C        = -Pu_exp_CB -load['wallG'] *n_story #!!!
@@ -358,7 +367,7 @@ R__coupling         = M_couplingBeams /M_all
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Results all at once
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-print(f"{'='*numSign}\n\t\t\tResults All at Once\n{'='*numSign}\n")
+print(f"\n\n\n{'='*numSign}\n\t\t\tResults All at Once\n{'='*numSign}\n")
 #______________________________________________________________________________
 # 01) SFRS Performance
 print(f"01) SFRS Performance\n{'_'*numSign}\n")
@@ -387,8 +396,8 @@ if      V_exp *L_CB /M_exp >= 2.4:
 elif    V_exp *L_CB /M_exp <= 1.6: 
     print("The Beams are Shear-Critical.")
 else:
-    print(f"The Beams are Flexure-Shear-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}")
-
+    print("The Beams are Flexure-Shear-Critical.")
+print(f"===>>>V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}")
 #______________________________________________________________________________
 # 02) Coupling Beam Demand/Capacity Info
 print(f"\n\n02) Coupling Beam Demand/Capacity Info\n{'_'*numSign}\n")
@@ -418,7 +427,13 @@ else:
     print("The Available Flexural Strength of Coupling Beam is OK but NOT OPTIMUM!")
 
 # 02.03) Pu_exp_CB
+print("\n")
+print(f"Vn_Mp_exp       = {Vn_Mp_exp /1000:.1f} kN")
+print(f"Vn_Vp_exp       = {Vn_Vp_exp /1000:.1f} kN")
+# print(f"VMR             = {VMR:.2f}")
+print(f"Vinpl           = {Vinpl /1000:.1f} kN")
 print(f"Pu_exp_CB       = {Pu_exp_CB /1000:.1f} kN")
+print(f"Leff            = {L_eff:.1f} m")
 
 #______________________________________________________________________________
 # 03) Composite Walls Demand/Capacity Info

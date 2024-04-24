@@ -144,10 +144,10 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
         ops.node(tagNodeII, *coordsLocal[tagNodeI])
         ops.node(tagNodeJJ, *coordsLocal[tagNodeJ])
         if beamTheory == "EulerBernouli":
-            ops.element('elasticBeamColumn',tagEleGlobal, *[tagNodeII, tagNodeJJ], section.AA, section.EE, 1, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
+            ops.element('elasticBeamColumn',     tagEleGlobal, *[tagNodeII, tagNodeJJ], section.EAeff, 1, section.EIeff, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
         elif beamTheory == "Timoshenko":
             #   element('ElasticTimoshenkoBeam', eleTag,       *eleNodes,               E_mod, G_mod, Area, Iz,   Avy,   transfTag,  <'-mass', massDens>, <'-cMass'>)
-            ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII, tagNodeJJ], Es,    Gs,    Aeff, Ieff, Aveff, tagGT)
+            ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII, tagNodeJJ], 1, 1, section.EAeff, section.EIeff, section.GAveff, tagGT)
     
     # Here is the place for adding the rotational springs
     # tagSpringRot    = 100001
@@ -197,7 +197,7 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
 
 def buildBeam(L, PlasticHingeLength=1, numSeg=3, 
               rotSpring=True, linearity=False, 
-              typeSpring="elastic"):#"elastic", "IMK_Pinching"
+              typeSpring="elastic", beamTheory = "EulerBernouli"):
     
     #       Define Geometric Transformation
     tagGTLinear = 1
@@ -244,7 +244,7 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
     
     tagEleGlobal = 4000001
     tagEleFibRec = subStructBeam(tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, composite, 
-                                 PlasticHingeLength, numSeg, rotSpring, typeSpring)
+                                 PlasticHingeLength, numSeg, rotSpring, typeSpring, beamTheory)
     # print(f"tagEleFibRec = {tagEleFibRec}")
     return(tagNodeTop, tagNodeBase, [tagEleFibRec], composite)
 
@@ -361,7 +361,7 @@ def buildShearCritBeam(L, numSeg=3, typeEle='dispBeamColumn'):
 def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, 
                  numSegBeam, numSegWall, PHL_wall, PHL_beam, SBL, 
                  typeCB="discretizedAllFiber", plot_section=True, modelFoundation=False, 
-                 rotSpring=False, linearity=False, typeSpring="elastic"):
+                 rotSpring=False, linearity=False, typeSpring="elastic", beamTheory = "EulerBernouli"):
     
     # k_rot       = 0.4*8400000 *kip*inch # Foundations Rotational Spring
     # ops.uniaxialMaterial('Elastic',   100000, k_rot)
@@ -635,9 +635,12 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
         # print(f"tagElement = {tagElement} & tanNodes = {tagNodes}")
         if f"{tagElement}"[-1] == '0':
             # print(f"tagElement = {tagElement} and tagNodes = {tagNodes}")
-            # ops.element('elasticBeamColumn', tagElement, *tagNodes, section['wall']['tagSec'], tagGTPDelta)
-            # ops.element('elasticBeamColumn', tagElement, *tagNodes, A, E, I, tagGTPDelta)
-            ops.element('elasticBeamColumn', tagElement, *tagNodes, wall.AA, wall.EE, 1, tagGTPDelta) 
+            if beamTheory == "EulerBernouli":
+                #   element('elasticBeamColumn', tagElement, *tagNodes, A, E, I, tagGTPDelta)
+                ops.element('elasticBeamColumn', tagElement, *tagNodes, wall.EAeff, 1, wall.EIeff, tagGTPDelta) 
+            elif beamTheory == "Timoshenko":
+                #   element('ElasticTimoshenkoBeam', eleTag,     *eleNodes, E_mod, G_mod, Area,       Iz,         Avy,         transfTag,  <'-mass', massDens>, <'-cMass'>)
+                ops.element('ElasticTimoshenkoBeam', tagElement, *tagNodes, 1,     1,     wall.EAeff, wall.EIeff, wall.GAveff, tagGTPDelta)
         else:
             ops.element('dispBeamColumn',    tagElement, *tagNodes, tagGTPDelta, wall.tagSec)
             # ops.element('elasticBeamColumn', tagElement, *tagNodes, tagSec, tagGTPDelta)
@@ -860,7 +863,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
                                 if 0:
                                     ops.equalDOF(tagNodeI, tagNodeJ, 2)
                                 tagToAppend = subStructBeam(tagEleBeam, tagNodeI, tagNodeJ, tagGTLinear, beam, 
-                                                            PHL_beam, numSegBeam, rotSpring, typeSpring)
+                                                            PHL_beam, numSegBeam, rotSpring, typeSpring, beamTheory)
                                 tagElementBeamHinge.append(tagToAppend) # This function models the beams
                                 print(f"tagElementBeamHinge = {tagElementBeamHinge}")
                             else: 

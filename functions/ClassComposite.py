@@ -10,6 +10,7 @@ class steel:
     def __init__(self, Es, Fy, Fu, eps_sh, eps_ult, nu, 
                  alpha, beta, gamma, Cf, a1, limit):
         self.Es     = Es
+        self.Gs     = Es /2 /(1 + 0.25)
         self.Esh    = Es/30
         self.Fy     = Fy 
         self.Fu     = Fu 
@@ -32,6 +33,7 @@ class concrete:
         self.wc         = wc
         self.lam        = lam
         self.Ec         = (21.5e3*MPa * 1.0 * (abs(fpc/MPa)/10)**(1/3))            # Tangent Modulus of Elasticity with fpc in MPa  ==> CEB-FIB-2010 5.1.7.2 (Selected by Masoumeh Asgharpoor)
+        self.Gc         = self.Ec /2 /(1 +0.15)
         self.epsc0      = 2*fpc/self.Ec                                            # Crack width (Average of 0.15 to  0.25 mm)
         self.epscU      = 1
         self.Gf         = (73 * (fpc/MPa)**0.18)                                   # Fracture Energy CEB-FIB-2010 section 5.1.5.2
@@ -68,6 +70,7 @@ class compo:
         self.Ct_unconf.A= self.Hc1 * tc
         self.Ct_conf.A  = self.Hc2 * tc * 2
         self.St_A       = self.St_flange.A + self.St_web.A
+        self.St_Asw     = self.d * 2*tw
         self.Ct_A       = self.Ct_unconf.A + self.Ct_conf.A
         self.Ag         = self.St_A + self.Ct_A
         self.P          = P
@@ -82,6 +85,7 @@ class compo:
         self.tf         = tf
         self.tc         = tc
         self.Es         = Es        = (self.St_flange.Es        + self.St_web.Es        )/2
+        self.Gs         = Gs        = (self.St_flange.Gs        + self.St_web.Gs        )/2
         self.Esh        = Esh       = (self.St_flange.Esh       + self.St_web.Esh       )/2
         self.Fy         = Fy        = (self.St_flange.Fy        + self.St_web.Fy        )/2
         self.Fu         = Fu        = (self.St_flange.Fu        + self.St_web.Fu        )/2
@@ -145,6 +149,8 @@ class compo:
         self.EAeff_Ct       = self.EAeff_unconf + self.EAeff_conf
         
         self.EAeff          = self.EAeff_St + 0.45*self.EAeff_Ct
+        
+        self.GAveff         = Gs *self.St_Asw +((self.EAeff_Ct/self.Ct_A) /(2*(1 +0.15))) *self.Ct_A
         
         # Define Materials
         if linearity == False:

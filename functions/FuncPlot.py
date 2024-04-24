@@ -25,6 +25,12 @@ def plotPushoverX(outputDir):
     x_Vx = np.column_stack((x, Vx))
     np.savetxt(f"{outputDir}/Pushover.txt", x_Vx)
     
+    Vpeak       = max(Vx)
+    V20peak     = 0.2 *Vpeak
+    xAtV20      = interpolate(V20peak, Vx, x)
+    stiffness   = V20peak /xAtV20
+    xVpeak      = 1/stiffness *Vpeak
+    
     fig, ax = plt.subplots(figsize=(10, 7), dpi=200)
     fig.suptitle(f"Pushover Curve: {outputDir[16:-4]}", fontsize=16)
     ax.set_xlabel(f'Displacement ({unitLength})')
@@ -40,6 +46,10 @@ def plotPushoverX(outputDir):
     elif unitForce=="lb":
         ax.set_ylabel('Shear (kip)')
         plt.plot(x, Vx/1e3, linewidth=0.8)
+    plt.plot([xAtV20, xAtV20], [0,            V20peak*N/kN], 'r--')        # Vertical Line
+    plt.plot([0,      xAtV20], [V20peak*N/kN, V20peak*N/kN], 'r--')   # Horizontal Line
+    plt.plot([0,      xVpeak], [0,            Vpeak*N/kN],   'g--', label = f" stiffness = {stiffness/(kN*m):.1f} kN/m")
+    plt.legend()
     plt.tight_layout()
     plt.show()
     

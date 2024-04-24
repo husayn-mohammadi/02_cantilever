@@ -210,14 +210,14 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
     propWeb     = Section[nameSect]['propWeb']
     propFlange  = Section[nameSect]['propFlange']
     propCore    = Section[nameSect]['propCore']
-    #composite  = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
-    composite   = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
-    compo.printVar(composite)
-    EIeff       = composite.EIeff
-    EAeff       = composite.EAeff
-    composite.EE= EIeff
-    composite.AA= EAeff/EIeff
-    compo.defineSection(composite, plot_section=True)
+    #beam       = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
+    beam        = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
+    compo.printVar(beam)
+    k_trans     = c_ktrans *(2 *beam.GAveff /L)
+    Vp          = 0.6*beam.St_web.Fy *beam.St_Asw
+    ops.uniaxialMaterial('Steel02', 100002, Vp, k_trans, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
+    EIeff       = beam.EIeff
+    compo.defineSection(beam, plot_section=True)
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     
@@ -243,10 +243,10 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
         ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
     
     tagEleGlobal = 4000001
-    tagEleFibRec = subStructBeam(tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, composite, 
+    tagEleFibRec = subStructBeam(tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, beam, 
                                  PlasticHingeLength, numSeg, rotSpring, typeSpring, beamTheory)
     # print(f"tagEleFibRec = {tagEleFibRec}")
-    return(tagNodeTop, tagNodeBase, [tagEleFibRec], composite)
+    return(tagNodeTop, tagNodeBase, [tagEleFibRec], beam)
 
 
 
@@ -418,10 +418,11 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
     #beam       = compo("beam", *tags, P, lsr, b,     NfibeY, *propWeb, *propFlange, *propCore)
     beam        = compo("beam", *tags, 0, lsr, 0.114, 5*NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(beam)
-    EIeff       = beam.EIeff
-    Av          = beam.St_web.A; G=beam.St_web.Es/(2*(1+0.3)); k_trans=20*2*G*Av/SBL/10; b1=0.003; R0,cR1,cR2= 18.5, 0.9, 0.1; a1=a3= 0.06; a2=a4= 1.0; Vp=0.6*beam.St_web.Fy*Av; 
+    k_trans     = c_ktrans *(2 *beam.GAveff /L)
+    Vp          = 0.6*beam.St_web.Fy *beam.St_Asw
     ops.uniaxialMaterial('Steel02', 100002, Vp, k_trans, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
-    EAeff       = wall.EAeff
+    EIeff       = beam.EIeff
+    EAeff       = beam.EAeff
     beam.EE     = EIeff
     beam.AA     = EAeff/EIeff
     eMax        = beam.eMax

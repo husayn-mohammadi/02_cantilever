@@ -5,12 +5,12 @@ import numpy                       as np
 import openseespy.opensees         as ops
 import matplotlib.pyplot           as plt
 import opsvis                      as opv
-
+nho_Ct=0.15; nho_St=0.3
 class steel:
     def __init__(self, Es, Fy, Fu, eps_sh, eps_ult, nu, 
                  alpha, beta, gamma, Cf, a1, limit):
         self.Es     = Es
-        self.Gs     = Es /2 /(1 + 0.25)
+        self.Gs     = Es /2 /(1 + nho_St)
         self.Esh    = Es/30
         self.Fy     = Fy 
         self.Fu     = Fu 
@@ -33,7 +33,7 @@ class concrete:
         self.wc         = wc
         self.lam        = lam
         self.Ec         = (21.5e3*MPa * 1.0 * (abs(fpc/MPa)/10)**(1/3))            # Tangent Modulus of Elasticity with fpc in MPa  ==> CEB-FIB-2010 5.1.7.2 (Selected by Masoumeh Asgharpoor)
-        self.Gc         = self.Ec /2 /(1 +0.15)
+        self.Gc         = self.Ec /2 /(1 +nho_Ct)
         self.epsc0      = 2*fpc/self.Ec                                            # Crack width (Average of 0.15 to  0.25 mm)
         self.epscU      = 1
         self.Gf         = (73 * (fpc/MPa)**0.18)                                   # Fracture Energy CEB-FIB-2010 section 5.1.5.2
@@ -150,7 +150,7 @@ class compo:
         
         self.EAeff          = self.EAeff_St + 0.45*self.EAeff_Ct
         
-        self.GAveff         = Gs *self.St_Asw +((self.EAeff_Ct/self.Ct_A) /(2*(1 +0.15))) *self.Ct_A
+        self.GAveff         = Gs *self.St_Asw +((self.EAeff_Ct/self.Ct_A) /(2*(1 +nho_Ct))) *self.Ct_A
         
         # Define Materials
         if linearity == False:

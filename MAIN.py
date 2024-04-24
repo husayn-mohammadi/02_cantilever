@@ -29,7 +29,7 @@ modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
 linearity       = False
-typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
+typeBuild       = 'buildBeam'            # 'CantileverColumn', 'coupledWalls', 'buildBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
 typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
 
@@ -38,7 +38,7 @@ PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
 PHL_beam        = 2/3 * Section['beam']['propWeb'][1]
 numSegWall      = 7                         # If numSegWall=0, the model will be built only with one linear elastic element connecting the base node to top node
 numSegBeam      = 15
-SBL             = 0.3 *m                    # Length of Shear Link (Shear Beam)
+# SBL             = 1                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
 incrMono        = 2*((H_typical*n_story)/4250)
 numIncrInit     = 9
@@ -119,8 +119,6 @@ for types in typeAnalysis:
         P = n_story * load['wall']
         tagNodeControl, tagNodeBase, buildingWidth, buildingHeight, coords, wall, tagEleListToRecord_wall, beam, tagEleListToRecord_beam, tagNodeLoad = fm.coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, PHL_wall, PHL_beam, L_CB, typeCB, plot_section, modelFoundation, rotSpring, linearity, typeSpring, beamTheory)
         # fa.analyzeEigen(n_story, True)
-    else:
-        tagNodeControl, tagNodeBase  = fm.buildShearCritBeam(L)
         
     # Plot Model
     if plot_undefo == True:

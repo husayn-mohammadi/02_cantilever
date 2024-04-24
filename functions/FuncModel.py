@@ -9,8 +9,8 @@ from functions.ClassComposite import compo
 #############################################################################################################################
 def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
                      modelFoundation=True, linearity=False, 
-                     typeSpring="elastic"):#"elastic", "IMK_Pinching"
-    
+                     typeSpring="elastic", beamTheory = "EulerBernouli" ):
+
     #       Define Geometric Transformation
     tagGTLinear = 1
     tagGTPDelta = 2
@@ -29,8 +29,7 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
     compo.printVar(composite)
     EIeff       = composite.EIeff
     EAeff       = composite.EAeff
-    EE          = EIeff
-    AA          = EAeff/EIeff
+    GAveff      = composite.GAveff
     compo.defineSection(composite, plot_section=True)
 
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
@@ -76,10 +75,18 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
         meshsize                = PlasticHingeLength/numSeg
         #  .mesh('line', tag, numnodes, *ndtags,                           id, ndf, meshsize, eleType='',       *eleArgs=[]) The arguments are same as in the element commands, but without element tag, and node tags. For example, eleArgs = ['elasticBeamColumn', A, E, Iz, transfTag]
         ops.mesh('line', 1,   2,        *[tagNodeFndn, tagNodeUpperBound], 0,  3,   meshsize, 'dispBeamColumn', tagGTPDelta, tags[0])
-        ops.element('elasticBeamColumn', 2, *[tagNodeUpperBound, tagNodeTop], AA, EE, 1, tagGTPDelta)
+        if beamTheory == "EulerBernouli":
+            ops.element('elasticBeamColumn', 2, *[tagNodeUpperBound, tagNodeTop], EAeff, 1, EIeff, tagGTPDelta)
+        elif beamTheory == "Timoshenko":
+            #   element('ElasticTimoshenkoBeam', eleTag, *eleNodes,                        E_mod, G_mod, Area,  Iz,    Avy,    transfTag,  <'-mass', massDens>, <'-cMass'>)
+            ops.element('ElasticTimoshenkoBeam', 2,      *[tagNodeUpperBound, tagNodeTop], 1,     1,     EAeff, EIeff, GAveff, tagGTPDelta)
         
     else:                       # For Concentrated-Plasticity Model
-        ops.element('elasticBeamColumn', 2, *[tagNodeFndn,       tagNodeTop], AA, EE, 1, tagGTPDelta)
+        if beamTheory == "EulerBernouli":
+            ops.element('elasticBeamColumn', 2, *[tagNodeFndn,       tagNodeTop], EAeff, 1, EIeff, tagGTPDelta)
+        elif beamTheory == "Timoshenko":
+            #   element('ElasticTimoshenkoBeam', eleTag, *eleNodes,                        E_mod, G_mod, Area,  Iz,    Avy,    transfTag,  <'-mass', massDens>, <'-cMass'>)
+            ops.element('ElasticTimoshenkoBeam', 2,      *[tagNodeUpperBound, tagNodeTop], 1,     1,     EAeff, EIeff, GAveff, tagGTPDelta)
         
         
     
@@ -95,7 +102,8 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
 
 #####################################################################################################################
 def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHingeLength, 
-                  numSeg=3, rotSpring=True, typeSpring="IMK_Pinching"):
+                  numSeg=3, rotSpring=True, typeSpring="IMK_Pinching", beamTheory = "EulerBernouli"):
+    
     tagEleLocal = 100*tagEleGlobal
     coordsLocal = {
         tagNodeI: ops.nodeCoord(tagNodeI),
@@ -126,11 +134,20 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
             if i > 0:
                 ops.element('dispBeamColumn',   tagNodeII-i, *[tagNodeII-i, tagNodeII-i+1], tagGT, section.tagSec) # for now instead of tagGTLinear I have written 1
                 ops.element('dispBeamColumn',   tagNodeJJ+i, *[tagNodeJJ+i, tagNodeJJ+i-1], tagGT, section.tagSec) # for now instead of tagGTLinear I have written 1
-        ops.element('elasticBeamColumn',tagEleGlobal, *[tagNodeII-numSeg, tagNodeJJ+numSeg], section.AA, section.EE, 1, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
+        if beamTheory == "EulerBernouli":
+            ops.element('elasticBeamColumn',tagEleGlobal, *[tagNodeII-numSeg, tagNodeJJ+numSeg], section.EAeff, 1, section.EIeff,   tagGT)
+        elif beamTheory == "Timoshenko":
+            #   element('ElasticTimoshenkoBeam', eleTag,       *eleNodes,                             E_mod, G_mod, Area, Iz,   Avy,   transfTag,  <'-mass', massDens>, <'-cMass'>)
+            ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII-numSeg, tagNodeJJ+numSeg], 1, 1, section.EAeff, section.EIeff, section.GAveff, tagGT)
+    
     elif typeSpring == "IMK_Pinching":
         ops.node(tagNodeII, *coordsLocal[tagNodeI])
         ops.node(tagNodeJJ, *coordsLocal[tagNodeJ])
-        ops.element('elasticBeamColumn',tagEleGlobal, *[tagNodeII, tagNodeJJ], section.AA, section.EE, 1, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
+        if beamTheory == "EulerBernouli":
+            ops.element('elasticBeamColumn',tagEleGlobal, *[tagNodeII, tagNodeJJ], section.AA, section.EE, 1, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
+        elif beamTheory == "Timoshenko":
+            #   element('ElasticTimoshenkoBeam', eleTag,       *eleNodes,               E_mod, G_mod, Area, Iz,   Avy,   transfTag,  <'-mass', massDens>, <'-cMass'>)
+            ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII, tagNodeJJ], Es,    Gs,    Aeff, Ieff, Aveff, tagGT)
     
     # Here is the place for adding the rotational springs
     # tagSpringRot    = 100001

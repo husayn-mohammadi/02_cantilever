@@ -74,7 +74,7 @@ plot_undefo     = True
 plot_loaded     = True
 plot_defo       = True
 sfac            = 10
-
+beamTheory      = "Timoshenko" # "EulerBernouli", "Timoshenko"
 plot_MomCurv    = True
 plot_Analysis   = True
 plot_StressStrain=False
@@ -107,14 +107,14 @@ for types in typeAnalysis:
             
     if typeBuild == "CantileverColumn":
         Py = 1
-        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_wall, numSegWall, "wall", modelFoundation, linearity, typeSpring)
+        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_wall, numSegWall, "wall", modelFoundation, linearity, typeSpring, beamTheory)
         fa.analyzeEigen(1)
     elif typeBuild == "CantileverBeam":
         Py = 1
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_beam, numSegBeam, "beam", modelFoundation, linearity, typeSpring)
         fa.analyzeEigen(1)
     elif typeBuild == 'buildBeam':
-        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildBeam(L, PHL_beam, numSegBeam, rotSpring, linearity, typeSpring)
+        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildBeam(L_CB, PHL_beam, numSegBeam, rotSpring, linearity, typeSpring, beamTheory)
     elif typeBuild == 'coupledWalls':
         P = n_story * load['wall']
         tagNodeControl, tagNodeBase, buildingWidth, buildingHeight, coords, wall, tagEleListToRecord_wall, beam, tagEleListToRecord_beam, tagNodeLoad = fm.coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, PHL_wall, PHL_beam, SBL, typeCB, plot_section, modelFoundation, rotSpring, linearity, typeSpring)

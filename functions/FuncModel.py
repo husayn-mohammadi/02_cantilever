@@ -5,6 +5,13 @@ import openseespy.opensees     as ops
 # import functions.FuncPlot      as fp
 from functions.ClassComposite import compo
 
+rigidElement = True # True False
+if rigidElement == True:
+    cE = 1e7
+    cS = 1
+else:
+    cE = 1
+    cS = 1e7
 
 #############################################################################################################################
 def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
@@ -102,7 +109,7 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
 
 #####################################################################################################################
 def subStructBeam(typeBuild, tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHingeLength, 
-                  numSeg=3, rotSpring=True, typeSpring="IMK_Pinching", beamTheory = "EulerBernouli"):
+                  numSeg=3, rotSpring=True, typeSpring="IMK_Pinching", beamTheory = "EulerBernouli", fibered=True):
     
     tagEleLocal = 100*tagEleGlobal
     coordsLocal = {
@@ -125,7 +132,7 @@ def subStructBeam(typeBuild, tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, P
     tagNodeII = tagEleLocal-1
     tagNodeJJ = tagEleLocal+1
     
-    if typeSpring == "elastic":
+    if typeSpring == "elastic" and fibered == True:
         for i in range(numSeg+1):
             coordsLocal[tagNodeII-i] = [coordsLocal[tagNodeI][0]+i*delta/L*Lx, coordsLocal[tagNodeI][1]+i*delta/L*Ly]
             ops.node(tagNodeII-i, *coordsLocal[tagNodeII-i])
@@ -139,15 +146,16 @@ def subStructBeam(typeBuild, tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, P
         elif beamTheory == "Timoshenko":
             #   element('ElasticTimoshenkoBeam', eleTag,       *eleNodes,                             E_mod, G_mod, Area, Iz,   Avy,   transfTag,  <'-mass', massDens>, <'-cMass'>)
             ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII-numSeg, tagNodeJJ+numSeg], 1, 1, section.EAeff, section.EIeff, section.GAveff, tagGT)
-    
-    elif typeSpring == "IMK_Pinching":
+   
+    elif typeSpring == "IMK_Pinching" or fibered == False:
         ops.node(tagNodeII, *coordsLocal[tagNodeI])
         ops.node(tagNodeJJ, *coordsLocal[tagNodeJ])
         if beamTheory == "EulerBernouli":
-            ops.element('elasticBeamColumn',     tagEleGlobal, *[tagNodeII, tagNodeJJ], section.EAeff, 1, section.EIeff, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
+            ops.element('elasticBeamColumn',     tagEleGlobal, *[tagNodeII, tagNodeJJ], section.EAeff, cE, section.EIeff, tagGT) # I=1 (+) for now instead of tagGTLinear I have written 1
         elif beamTheory == "Timoshenko":
             #   element('ElasticTimoshenkoBeam', eleTag,       *eleNodes,               E_mod, G_mod, Area, Iz,   Avy,   transfTag,  <'-mass', massDens>, <'-cMass'>)
-            ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII, tagNodeJJ], 1, 1, section.EAeff, section.EIeff, section.GAveff, tagGT)
+            ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII, tagNodeJJ], cE, cE, section.EAeff, section.EIeff, section.GAveff, tagGT)
+    
     
     # Here is the place for adding the springs
     if typeBuild == 'coupledWalls':
@@ -195,8 +203,8 @@ def subStructBeam(typeBuild, tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, P
 
 def buildBeam(L, PlasticHingeLength=1, numSeg=3, 
               rotSpring=True, linearity=False, 
-              typeSpring="elastic", beamTheory = "EulerBernouli"):
-    
+              typeSpring="elastic", beamTheory = "EulerBernouli", fibered=True):
+    if typeSpring != "elastic" or shearCriticality == True: linearity=True
     #       Define Geometric Transformation
     tagGTLinear = 1
     ops.geomTransf('Linear', tagGTLinear)
@@ -211,8 +219,8 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
     #beam       = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
     beam        = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(beam)
-    k_trans     = c_ktrans *(2 *beam.GAveff /L)
-    Vp          = 0.6*beam.St_web.Fy *beam.St_Asw
+    k_trans     = c_ktrans *(2 *beam.GAveff /L) *cS
+    Vp          =  beam.St_Asw *(0.6*beam.St_web.Fy)
     ops.uniaxialMaterial('Steel02', 100002, Vp, k_trans, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
     EIeff       = beam.EIeff
     compo.defineSection(beam, plot_section=True)
@@ -242,7 +250,7 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
     
     tagEleGlobal = 4000001
     tagEleFibRec = subStructBeam('buildBeam', tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, beam, 
-                                 PlasticHingeLength, numSeg, rotSpring, typeSpring, beamTheory)
+                                 PlasticHingeLength, numSeg, rotSpring, typeSpring, beamTheory, fibered)
     # print(f"tagEleFibRec = {tagEleFibRec}")
     return(tagNodeTop, tagNodeBase, [tagEleFibRec], beam)
 
@@ -258,7 +266,7 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
 def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, 
                  numSegBeam, numSegWall, PHL_wall, PHL_beam, SBL, 
                  typeCB="discretizedAllFiber", plot_section=True, modelFoundation=False, 
-                 rotSpring=False, linearity=False, typeSpring="elastic", beamTheory = "EulerBernouli"):
+                 rotSpring=False, linearity=False, typeSpring="elastic", beamTheory = "EulerBernouli", fibered=True):
     
     # k_rot       = 0.4*8400000 *kip*inch # Foundations Rotational Spring
     # ops.uniaxialMaterial('Elastic',   100000, k_rot)
@@ -407,6 +415,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
     compo.defineSection(wall, plot_section=True) # This will create the fiber section
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
+    if typeSpring != "elastic": linearity=True
     NIP         = 7
     nameSect    = 'beam'
     tags        = Section[nameSect]['tags']
@@ -416,8 +425,8 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
     #beam       = compo("beam", *tags, P, lsr, b,     NfibeY, *propWeb, *propFlange, *propCore)
     beam        = compo("beam", *tags, 0, lsr, 0.114, 5*NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(beam)
-    k_trans     = c_ktrans *(2 *beam.GAveff /L)
-    Vp          = 0.6*beam.St_web.Fy *beam.St_Asw
+    k_trans     = c_ktrans *(2 *beam.GAveff /L) *cS
+    Vp          =  beam.St_Asw *(0.6*beam.St_web.Fy)
     ops.uniaxialMaterial('Steel02', 100002, Vp, k_trans, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
     EIeff       = beam.EIeff
     EAeff       = beam.EAeff
@@ -761,7 +770,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
                                 if 0:
                                     ops.equalDOF(tagNodeI, tagNodeJ, 2)
                                 tagToAppend = subStructBeam('coupledWalls', tagEleBeam, tagNodeI, tagNodeJ, tagGTLinear, beam, 
-                                                            PHL_beam, numSegBeam, rotSpring, typeSpring, beamTheory)
+                                                            PHL_beam, numSegBeam, rotSpring, typeSpring, beamTheory, fibered)
                                 tagElementBeamHinge.append(tagToAppend) # This function models the beams
                                 print(f"tagElementBeamHinge = {tagElementBeamHinge}")
                             else: 

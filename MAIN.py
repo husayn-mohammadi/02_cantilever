@@ -81,7 +81,7 @@ plot_StressStrain=False
 plot_section    = False
 typeSpring      = "elastic"  # "elastic", "IMK_Pinching"
 Pu_1wall        = -load['wallG']
-# Pu_1wall        = -load['wallG']
+fibered         = False
 #=============================================================================
 #    MAIN
 #=============================================================================
@@ -114,10 +114,10 @@ for types in typeAnalysis:
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_beam, numSegBeam, "beam", modelFoundation, linearity, typeSpring)
         fa.analyzeEigen(1)
     elif typeBuild == 'buildBeam':
-        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildBeam(L_CB, PHL_beam, numSegBeam, rotSpring, linearity, typeSpring, beamTheory)
+        tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildBeam(L_CB, PHL_beam, numSegBeam, rotSpring, linearity, typeSpring, beamTheory, fibered)
     elif typeBuild == 'coupledWalls':
         P = n_story * load['wall']
-        tagNodeControl, tagNodeBase, buildingWidth, buildingHeight, coords, wall, tagEleListToRecord_wall, beam, tagEleListToRecord_beam, tagNodeLoad = fm.coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, PHL_wall, PHL_beam, L_CB, typeCB, plot_section, modelFoundation, rotSpring, linearity, typeSpring, beamTheory)
+        tagNodeControl, tagNodeBase, buildingWidth, buildingHeight, coords, wall, tagEleListToRecord_wall, beam, tagEleListToRecord_beam, tagNodeLoad = fm.coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, PHL_wall, PHL_beam, L_CB, typeCB, plot_section, modelFoundation, rotSpring, linearity, typeSpring, beamTheory, fibered)
         # fa.analyzeEigen(n_story, True)
         
     # Plot Model

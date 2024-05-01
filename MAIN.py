@@ -80,6 +80,7 @@ plot_Pushover   = True
 plot_StressStrain=False
 plot_section    = False
 typeSpring      = "elastic"  # "elastic", "IMK_Pinching"
+# Pu_1wall        = Pu_T
 Pu_1wall        = -load['wallG']
 fibered         = False
 #=============================================================================
@@ -200,8 +201,10 @@ for types in typeAnalysis:
         print(f"Cyclic Pushover Analysis Finished in {mins}min+{secs}sec.")
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
         if plot_loaded == True:
+            if "buildingWidth" not in globals(): buildingWidth=buildingHeight = 10
             opv.plot_loads_2d(nep=17, sfac=False, fig_wi_he=(buildingWidth+buildingWidth1, buildingHeight+buildingHeight1), fig_lbrt=False, fmt_model_loads={'color': 'black', 'linestyle': 'solid', 'linewidth': 1.2, 'marker': '', 'markersize': 1}, node_supports=True, truss_node_offset=0, ax=False)
         if plot_defo == True:
+            if "buildingWidth" not in globals(): buildingWidth=buildingHeight = 10
             sfac = opv.plot_defo(fig_wi_he=(buildingWidth+buildingWidth1, buildingHeight+buildingHeight1),
                                  #fmt_defo={'color': 'blue', 'linestyle': 'solid', 'linewidth': 0.6, 'marker': '.', 'markersize': 3}
                                  )
@@ -226,7 +229,7 @@ for types in typeAnalysis:
         a  = fa.read_ground_motion_record(filePath); t = np.array([i *dtGM for i in range(NPTS)])
         ta = np.column_stack((t, a[:NPTS]))
         fr.recordDataNTHA(tagNodeBase, tagNodeControl, outputDirNTHA, tag)
-        fa.NTHA1(tagNodeControl, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, duration, tag)
+        fa.NTHA1(tagNodeControl, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, duration, tag, numIncrInit)
         if type(tagNodeControl) != list:
             tagNodeControl = [tagNodeControl]
         nFloors = len(tagNodeControl)

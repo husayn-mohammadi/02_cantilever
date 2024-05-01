@@ -241,7 +241,7 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
     
     tagSpringRot    = 100001
     if typeSpring == "elastic":
-        k_rot = 20*EIeff/L
+        k_rot = c_krot *20 *EIeff /L
         ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
     elif typeSpring == "IMK_Pinching":
         K0          = C_K0 *EIeff /L **1
@@ -441,7 +441,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
     #   Define Hinge Material for Different Cases
     tagSpringRot    = 100001
     if typeSpring == "elastic":
-        k_rot = 4*20*EIeff/L_CB
+        k_rot = c_krot *20 *EIeff /L_CB
         ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
     elif typeSpring == "IMK_Pinching":
         K0          = C_K0 *EIeff /L **1 # This EIeff is the the last one created. 

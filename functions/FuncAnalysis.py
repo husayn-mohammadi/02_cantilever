@@ -204,8 +204,8 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
         dispTar         = iii * incrFrac
         testerList      = [
             'EnergyIncr', 
-            'NormDispIncr', 
             'NormUnbalance', 
+            'NormDispIncr', 
             ]#, 'RelativeNormUnbalance']
         algorithmList   = [*(1*[
             'KrylovNewton', 
@@ -461,7 +461,7 @@ def cyclicAnalysis(dispList, incrInit, tagNodeLoad, numIncrInit=2):
     return OK
 
 
-def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag):
+def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag, numIncrInit=2):
     # ops.wipeAnalysis()
     t_beg           = time.time()
     rayleighDamping(0.05)
@@ -479,7 +479,7 @@ def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag
     ops.system('FullGeneral')
     
     # Run Analysis
-    OK = convergeIt('NTHA', tagNodeLoad, tagNodeBase, dofNodeControl, dtGM, NPTS, Tmax, 0, ["No list required!"], Tmax, t_beg, numIncrInit=2)
+    OK = convergeIt('NTHA', tagNodeLoad, tagNodeBase, dofNodeControl, dtGM, NPTS, Tmax, 0, ["No list required!"], Tmax, t_beg, numIncrInit)
     ops.wipeAnalysis()
     return OK
 

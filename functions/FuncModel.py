@@ -101,7 +101,7 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
 
 
 #####################################################################################################################
-def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHingeLength, 
+def subStructBeam(typeBuild, tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHingeLength, 
                   numSeg=3, rotSpring=True, typeSpring="IMK_Pinching", beamTheory = "EulerBernouli"):
     
     tagEleLocal = 100*tagEleGlobal
@@ -149,26 +149,24 @@ def subStructBeam(tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, PlasticHinge
             #   element('ElasticTimoshenkoBeam', eleTag,       *eleNodes,               E_mod, G_mod, Area, Iz,   Avy,   transfTag,  <'-mass', massDens>, <'-cMass'>)
             ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII, tagNodeJJ], 1, 1, section.EAeff, section.EIeff, section.GAveff, tagGT)
     
-    # Here is the place for adding the rotational springs
-    # tagSpringRot    = 100001
-    # if typeSpring == "elastic":
-    #     k_rot = 20*EIeff/L
-    #     ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
-    # elif typeSpring == "IMK_Pinching":
-    #     K0          = 12 *EIeff /L **1
-    #     #   uniaxialMaterial('ModIMKPinching', matTag, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
-    #     ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
+    # Here is the place for adding the springs
+    if typeBuild == 'coupledWalls':
+        dirShear = 2
+        dirAxial = 1
+    elif typeBuild == 'buildBeam':
+        dirShear = 1
+        dirAxial = 2
     
     eAve = section.eAve; print(f"eAve = {eAve}")
     if rotSpring == True:
         if L <= eAve:   # Beam is Shear-Critical
             print(f"{L = } <= {eAve = } ===>>> Beam is Shear-Critical")
-            ops.equalDOF(tagNodeI, tagNodeII, 1)
+            ops.equalDOF(tagNodeI, tagNodeII, dirAxial)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,          '-dir', *dirs)
-            ops.element('zeroLength', int(f"89{tagCoordXI}{tagCoordXJ}{tagCoordYI}"), *[tagNodeI, tagNodeII], '-mat', *[100002, 100001], '-dir', *[2, 3])
-            ops.equalDOF(tagNodeJ, tagNodeJJ, 1)
+            ops.element('zeroLength', int(f"89{tagCoordXI}{tagCoordXJ}{tagCoordYI}"), *[tagNodeI, tagNodeII], '-mat', *[100002, 100001], '-dir', *[dirShear, 3])
+            ops.equalDOF(tagNodeJ, tagNodeJJ, dirAxial)
             #   element('zeroLength', eleTag,                                         *eleNodes,              '-mat', *matTags,          '-dir', *dirs)
-            ops.element('zeroLength', int(f"89{tagCoordXJ}{tagCoordXI}{tagCoordYJ}"), *[tagNodeJJ, tagNodeJ], '-mat', *[100002, 100001], '-dir', *[2, 3])
+            ops.element('zeroLength', int(f"89{tagCoordXJ}{tagCoordXI}{tagCoordYJ}"), *[tagNodeJJ, tagNodeJ], '-mat', *[100002, 100001], '-dir', *[dirShear, 3])
         else:           # Beam is Flexure-Critical
             print(f"{L = } > {eAve = } ===>>> Beam is Flexure-Critical")
             ops.equalDOF(tagNodeI, tagNodeII, 1, 2)
@@ -243,7 +241,7 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
         ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
     
     tagEleGlobal = 4000001
-    tagEleFibRec = subStructBeam(tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, beam, 
+    tagEleFibRec = subStructBeam('buildBeam', tagEleGlobal, tagNodeBase, tagNodeTop, tagGTLinear, beam, 
                                  PlasticHingeLength, numSeg, rotSpring, typeSpring, beamTheory)
     # print(f"tagEleFibRec = {tagEleFibRec}")
     return(tagNodeTop, tagNodeBase, [tagEleFibRec], beam)
@@ -762,7 +760,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
                                 # print(f"coordNodeJ = {ops.nodeCoord(tagNodeJ)}")
                                 if 0:
                                     ops.equalDOF(tagNodeI, tagNodeJ, 2)
-                                tagToAppend = subStructBeam(tagEleBeam, tagNodeI, tagNodeJ, tagGTLinear, beam, 
+                                tagToAppend = subStructBeam('coupledWalls', tagEleBeam, tagNodeI, tagNodeJ, tagGTLinear, beam, 
                                                             PHL_beam, numSegBeam, rotSpring, typeSpring, beamTheory)
                                 tagElementBeamHinge.append(tagToAppend) # This function models the beams
                                 print(f"tagElementBeamHinge = {tagElementBeamHinge}")

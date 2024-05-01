@@ -773,6 +773,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
                                                             PHL_beam, numSegBeam, rotSpring, typeSpring, beamTheory, fibered)
                                 tagElementBeamHinge.append(tagToAppend) # This function models the beams
                                 print(f"tagElementBeamHinge = {tagElementBeamHinge}")
+                                Beams[tagEleBeam] = [tagNodeI, tagNodeJ]
                             else: 
                                 print("typeCB not recognized!"); sys.exit()
                             # Beams[f"4{tagCoordYI}{tagCoordXI}{tagCoordXJ}"] = [tagNodeI, tagNodeJ]  #Prefix 4 is for Beams
@@ -828,7 +829,7 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
             tagNodeControl.append(tagNode)
             # print(f"tagNodeControl = {tagNodeControl}") 
     
-    return(tagNodeControl, tagNodeBaseList, x, y, coords, wall, tagElementWallBase, beam, tagElementBeamHinge, tagNodeLoad)
+    return(tagNodeControl, tagNodeBaseList, x, y, coords, wall, tagElementWallBase, beam, tagElementBeamHinge, tagNodeLoad, Beams)
 
 
 

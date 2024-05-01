@@ -76,7 +76,7 @@ plot_defo       = True
 sfac            = 10
 beamTheory      = "Timoshenko" # "EulerBernouli", "Timoshenko"
 plot_MomCurv    = True
-plot_Analysis   = True
+plot_Pushover   = True
 plot_StressStrain=False
 plot_section    = False
 typeSpring      = "elastic"  # "elastic", "IMK_Pinching"
@@ -173,7 +173,7 @@ for types in typeAnalysis:
             print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
         
         else:
-            plot_Analysis       = False
+            plot_Pushover       = False
             plot_StressStrain   = False
             T1, driftMaximum, V_base, Vr_CB = fa.pushoverLCF(tagNodeControl, tagNodeBase, tagEleListToRecord_beam, S_MS, S_M1)
             print(f"driftMax = {driftMaximum*100:.5f}%")
@@ -206,7 +206,7 @@ for types in typeAnalysis:
                                  #fmt_defo={'color': 'blue', 'linestyle': 'solid', 'linewidth': 0.6, 'marker': '.', 'markersize': 3}
                                  )
     elif types == 'NTHA':
-        plot_Analysis   = False
+        plot_Pushover   = False
         plot_StressStrain=False
         start_time_NTHA = time.time()
         print("\n\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
@@ -249,8 +249,8 @@ for types in typeAnalysis:
 #=============================================================================
 #    Plot
 #=============================================================================
-    if plot_Analysis == True:
-        fp.plotPushoverX(outputDir) 
+    if plot_Pushover == True:
+        fp.plotPushoverX(outputDir, types) 
     if plot_StressStrain == True:
         if typeBuild == "CantileverColumn" or typeBuild == "buildBeam":
             fp.plotStressStrain(outputDirWalls,tagEleListToRecord_wall)

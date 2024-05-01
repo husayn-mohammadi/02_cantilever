@@ -7,7 +7,7 @@ exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open("In
 unitForce   = "kN" if kN==1 else "N"   if N==1  else "kip" if kip==1 else "lb"  
 unitLength  = "m"  if m==1  else "cm"  if cm==1 else "mm"  if mm==1  else "in." if inch==1 else "ft" 
 
-def plotPushoverX(outputDir):
+def plotPushoverX(outputDir, types="monotonic"):
     
     disp    = np.loadtxt(f"{outputDir}/top_disp.txt", delimiter= ' ')
     # reac    = np.loadtxt(f"{outputDir}/reaction.txt", delimiter= ' ')
@@ -46,10 +46,11 @@ def plotPushoverX(outputDir):
     elif unitForce=="lb":
         ax.set_ylabel('Shear (kip)')
         plt.plot(x, Vx/1e3, linewidth=0.8)
-    plt.plot([xAtV20, xAtV20], [0,            V20peak*N/kN], 'r--')        # Vertical Line
-    plt.plot([0,      xAtV20], [V20peak*N/kN, V20peak*N/kN], 'r--')   # Horizontal Line
-    plt.plot([0,      xVpeak], [0,            Vpeak*N/kN],   'g--', label = f" stiffness = {stiffness/(kN*m):.1f} kN/m")
-    plt.legend()
+    if types == "monotonic":
+        plt.plot([xAtV20, xAtV20], [0,            V20peak*N/kN], 'r--')        # Vertical Line
+        plt.plot([0,      xAtV20], [V20peak*N/kN, V20peak*N/kN], 'r--')   # Horizontal Line
+        plt.plot([0,      xVpeak], [0,            Vpeak*N/kN],   'g--', label = f" stiffness = {stiffness/(kN*m):.1f} kN/m")
+        plt.legend()
     plt.tight_layout()
     plt.show()
     

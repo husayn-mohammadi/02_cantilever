@@ -190,7 +190,7 @@ def interpolate(Xp, x, y):
     return result_min
 
 def plotIDA(x, y, outputDirIDA, rec, mins, Threshold=False):
-    os.makedirs(f"{outputDirIDA}/{rec}", exist_ok=True)
+    os.makedirs(f"{outputDirIDA}/{rec[:-4]}", exist_ok=True)
     if Threshold == True:
         fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=200)
         ax.set_xlabel('Drift (%)')

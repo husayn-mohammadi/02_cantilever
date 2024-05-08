@@ -109,13 +109,16 @@ for types in typeAnalysis:
     if typeBuild == "CantileverColumn":
         Py = 1
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_wall, numSegWall, "wall", modelFoundation, linearity, typeSpring, beamTheory)
+        Beams = 0
         fa.analyzeEigen(1)
     elif typeBuild == "CantileverBeam":
         Py = 1
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_beam, numSegBeam, "beam", modelFoundation, linearity, typeSpring)
+        Beams = 0
         fa.analyzeEigen(1)
     elif typeBuild == 'buildBeam':
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildBeam(L_CB, PHL_beam, numSegBeam, rotSpring, linearity, typeSpring, beamTheory, fibered)
+        Beams = 0
     elif typeBuild == 'coupledWalls':
         P = n_story * load['wall']
         tagNodeControl, tagNodeBase, buildingWidth, buildingHeight, coords, wall, tagEleListToRecord_wall, beam, tagEleListToRecord_beam, tagNodeLoad, Beams = fm.coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, PHL_wall, PHL_beam, L_CB, typeCB, plot_section, modelFoundation, rotSpring, linearity, typeSpring, beamTheory, fibered)
@@ -162,9 +165,9 @@ for types in typeAnalysis:
             print(f"Monotonic Pushover Analysis Initiated at {(start_time_monotonic - start_time):.0f}sec.")
             print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
             if typeBuild == 'coupledWalls':
-                fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl, tagNodeLoad['wall'])
+                fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl, tagNodeLoad['wall'], Beams)
             else:
-                fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl, tagNodeControl, distributeOnWalls=False)
+                fa.pushoverDCF(dispTarget, incrMono, numIncrInit, tagNodeControl, tagNodeControl, 0, distributeOnWalls=False)
             
             finish_time_monotonic = time.time()
             mins = int((finish_time_monotonic - start_time_monotonic)/60)
@@ -229,7 +232,7 @@ for types in typeAnalysis:
         a  = fa.read_ground_motion_record(filePath); t = np.array([i *dtGM for i in range(NPTS)])
         ta = np.column_stack((t, a[:NPTS]))
         fr.recordDataNTHA(tagNodeBase, tagNodeControl, outputDirNTHA, tag)
-        fa.NTHA1(tagNodeControl, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, duration, tag, numIncrInit)
+        fa.NTHA1(tagNodeControl, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, duration, tag, Beams, numIncrInit)
         if type(tagNodeControl) != list:
             tagNodeControl = [tagNodeControl]
         nFloors = len(tagNodeControl)

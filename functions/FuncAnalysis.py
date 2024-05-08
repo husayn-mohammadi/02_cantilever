@@ -119,12 +119,25 @@ def gravity(load, tagNodeLoad):
     # ops.analyze(1)
     ops.loadConst('-time', 0.0)
 
-def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, dispList, dispTarget, t_beg, numIncrInit=5):
+def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, dispList, dispTarget, t_beg, Beams, numIncrInit=5):
     if type(tagNodeLoad) == list:
         tagNodeControl  = tagNodeLoad[-1]
     else:
         tagNodeControl  = tagNodeLoad
-        
+    
+    def dispShear(Beams):
+        rotation={}
+        deltaY={}
+        for tagEle, tagNodes in Beams.items():
+            coordI          = ops.nodeCoord(tagNodes[0])
+            coordJ          = ops.nodeCoord(tagNodes[1])
+            L               = ((coordJ[0] -coordI[0]) **2 +(coordJ[1] -coordI[1]) **2) **0.5
+            dispYI          = ops.nodeDisp(tagNodes[0], 2)
+            dispYJ          = ops.nodeDisp(tagNodes[1], 2)
+            deltaY[tagEle]  = abs(dispYJ - dispYI)
+            rotation[tagEle]= abs(dispYJ - dispYI) /L
+        return deltaY, rotation
+    
     def curD():
         if typeAnalysis=="NTHA":
             
@@ -152,7 +165,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 height  = ops.nodeCoord(tagNodeLoad)[1] - ops.nodeCoord(tagNodeBase)[1]
                 dispTop = ops.nodeDisp(tagNodeLoad, dofNodeControl)
                 dispBot = ops.nodeDisp(tagNodeBase, dofNodeControl)
-                # driftMax=driftAve= abs(dispTop - dispBot)/height
+                driftMax=driftAve= abs(dispTop - dispBot)/height
             return t, driftMax
         else:
             d = ops.nodeDisp(tagNodeControl, dofNodeControl)
@@ -248,6 +261,18 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     print(f"AnalyzeOutput\t= {OK}")
                     t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
                     print(f"\nElapsed time: {mins} min + {secs} sec")
+                    if Beams != 0:
+                        deltaYBeam, rotationBeam = dispShear(Beams)
+                        # removedElements = []
+                        for tagEle, tagNodes in Beams.items():
+                            print(f"deltaYBeam {tagEle} = {deltaYBeam[tagEle]*1000:.1f} mm")
+                            # if deltaYBeam[tagEle] > 4.4 *mm:
+                                # if tagEle not in removedElements:
+                                #     ops.remove('ele', tagEle)
+                                    # ops.element('elasticBeamColumn', tagEle, *[tagNodes[0], tagNodes[1]], 1, 1, 1, 1)
+                                    # removedElements.append(tagEle)
+                                # print(f"==--> Beam {tagEle} removed!")
+                                
                     if OK == 0: break
                     elif OK != 0:
                         t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
@@ -296,7 +321,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 break
     return OK
 
-def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2, distributeOnWalls=True): 
+def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2, Beams, distributeOnWalls=True): 
     
     t_beg           = time.time()
     T1              = analyzeEigen(1)[0]
@@ -347,7 +372,7 @@ def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2, di
     numFrac     = int(delta/incrInit)
     incrFrac    = delta/numFrac
     asTagNodeBase = 1 #it is not going to be used at all in this analysis. it is just to fill a positional argument
-    OK          = convergeIt("Monotonic", tagNodeLoad, asTagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, ['This is a list'], dispTarget, t_beg, numIncrInit)
+    OK          = convergeIt("Monotonic", tagNodeLoad, asTagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, ['This is a list'], dispTarget, t_beg, Beams, numIncrInit)
     return OK
 
 def calcDrift(tagNodeLoad, tagNodeBase, dofNodeControl):
@@ -419,7 +444,7 @@ def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList, S_MS=1.5, S_M1=0.9):
     return T1, driftMax, V_base, shearAverage
     
 
-def cyclicAnalysis(dispList, incrInit, tagNodeLoad, numIncrInit=2):
+def cyclicAnalysis(dispList, incrInit, tagNodeLoad, Beams, numIncrInit=2):
     asTagNodeBase   = 1 #it is not going to be used at all in this analysis. it is just to fill a positional argument
     t_beg           = time.time()
     dofNodeControl  = 1
@@ -455,13 +480,13 @@ def cyclicAnalysis(dispList, incrInit, tagNodeLoad, numIncrInit=2):
             incrFrac    = delta/numFrac
             OK          = convergeIt('Cyclic', tagNodeLoad, asTagNodeBase, dofNodeControl, 
                                      incrFrac, numFrac, disp, dispIndex, dispList, 
-                                     dispTarget, t_beg, numIncrInit)
+                                     dispTarget, t_beg, Beams, numIncrInit)
             if OK < 0: break
         if OK < 0: break
     return OK
 
 
-def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag, numIncrInit=2):
+def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag, Beams, numIncrInit=2):
     # ops.wipeAnalysis()
     t_beg           = time.time()
     rayleighDamping(0.05)
@@ -479,7 +504,8 @@ def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag
     ops.system('FullGeneral')
     
     # Run Analysis
-    OK = convergeIt('NTHA', tagNodeLoad, tagNodeBase, dofNodeControl, dtGM, NPTS, Tmax, 0, ["No list required!"], Tmax, t_beg, numIncrInit)
+    OK = convergeIt('NTHA', tagNodeLoad, tagNodeBase, dofNodeControl, dtGM, NPTS, Tmax, 0, 
+                    ["No list required!"], Tmax, t_beg, Beams, numIncrInit)
     ops.wipeAnalysis()
     return OK
 
@@ -501,7 +527,7 @@ def read_ground_motion_record(filename):
     ground_motion_record = [float(num) for line in data for num in line.split()]
     return np.array(ground_motion_record)
 
-def get_spectral_acceleration(filename, dt, T, outputDirIDA):
+def get_spectral_acceleration(filename, dt, T1, outputDirIDA):
         
     periods = np.linspace(0.001, 8, 500)  # compute the response for 500 periods between T=0.001s and 8.0s
 

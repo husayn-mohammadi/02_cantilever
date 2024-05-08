@@ -502,27 +502,28 @@ def read_ground_motion_record(filename):
     return np.array(ground_motion_record)
 
 def get_spectral_acceleration(filename, dt, T, outputDirIDA):
-    a = read_ground_motion_record(filename)
-    periods = np.linspace(0.001, 5, 500)  # compute the response for 500 periods between T=0.001s and 5.0s
+        
+    periods = np.linspace(0.001, 8, 500)  # compute the response for 500 periods between T=0.001s and 8.0s
 
+    a = read_ground_motion_record(filename)
     # record = eqsig.AccSignal(a * g, dt)
     record = eqsig.AccSignal(a * 1, dt)
     pga     = record.pga 
     pgv     = record.pgv *9.80665 *(m/s**2)
     pgd     = record.pgd *9.80665 *(m/s**2)
     record.generate_response_spectrum(response_times=periods)
-    times = record.response_times
-
+    S_G     = record.s_a # This gives the array of points corresponding to periods
+    S_Gmax  = max(S_G)
     # Find the corresponding value on the vertical axis
-    SaGM = np.interp(T, times, record.s_a)
+    SaGM = np.interp(T1, periods, record.s_a)
     rec = filename[9:-4]
     if 1:
         fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
         ax.set_ylabel('Sa [g]')
         ax.set_xlabel('T [sec]')
-        plt.plot(times, record.s_a, label=f"{rec[:-4]}\nPGA  = {pga:.4f} g\nPGV  = {pgv:.4f} m/s\nPGD  = {pgd:.4f} m")
-        plt.plot([T, T], [0,    SaGM], 'r--', label=f"SaGM ={SaGM:.4f} g")
-        plt.plot([0, T], [SaGM, SaGM], 'g--', label=f"T        ={T:.4f} sec")
+        plt.plot(periods, record.s_a, label=f"{rec[:-4]}\nPGA  = {pga:.4f} g\nPGV  = {pgv:.4f} m/s\nPGD  = {pgd:.4f} m")
+        plt.plot([T1, T1], [0,    SaGM], 'r--', label=f"SaGM ={SaGM:.4f} g")
+        plt.plot([0,  T1], [SaGM, SaGM], 'g--', label=f"T1       ={T1:.4f} sec")
         fig.suptitle("Acceleration Response Spectrum", fontsize=16)
         plt.legend()
         plt.tight_layout()

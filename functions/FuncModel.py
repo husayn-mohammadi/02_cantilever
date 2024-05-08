@@ -146,7 +146,7 @@ def subStructBeam(typeBuild, tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, P
         elif beamTheory == "Timoshenko":
             #   element('ElasticTimoshenkoBeam', eleTag,       *eleNodes,                             E_mod, G_mod, Area, Iz,   Avy,   transfTag,  <'-mass', massDens>, <'-cMass'>)
             ops.element('ElasticTimoshenkoBeam', tagEleGlobal, *[tagNodeII-numSeg, tagNodeJJ+numSeg], 1, 1, section.EAeff, section.EIeff, section.GAveff, tagGT)
-   
+    
     elif typeSpring == "IMK_Pinching" or fibered == False:
         ops.node(tagNodeII, *coordsLocal[tagNodeI])
         ops.node(tagNodeJJ, *coordsLocal[tagNodeJ])
@@ -219,13 +219,12 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
     #beam       = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
     beam        = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
     compo.printVar(beam)
-    k_trans     = c_ktrans *(2 *beam.GAveff /L) *cS
-    Vp          =  beam.St_Asw *(0.6*beam.St_web.Fy)
-    ops.uniaxialMaterial('Steel02', 100002, Vp, k_trans, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
-    EIeff       = beam.EIeff
     compo.defineSection(beam, plot_section=True)
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
+    k_trans     = c_ktrans *(2 *beam.GAveff /L) *cS
+    Vp          =  beam.St_Asw *(0.6*beam.St_web.Fy)
+    ops.uniaxialMaterial('Steel02', 100002, Vp, k_trans, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
     
     #       Define Nodes & Elements
     ##      Define Base Node
@@ -241,10 +240,10 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
     
     tagSpringRot    = 100001
     if typeSpring == "elastic":
-        k_rot = c_krot *20 *EIeff /L
+        k_rot = c_krot *20 *beam.EIeff /L
         ops.uniaxialMaterial('Elastic',   tagSpringRot, k_rot)
     elif typeSpring == "IMK_Pinching":
-        K0          = C_K0 *EIeff /L **1
+        K0          = C_K0 *beam.EIeff /L **1
         #   uniaxialMaterial('ModIMKPinching', matTag, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
         ops.uniaxialMaterial('ModIMKPinching', tagSpringRot, K0, as_Plus, as_Neg, My_Plus, My_Neg, FprPos, FprNeg, A_pinch, Lamda_S, Lamda_C, Lamda_A, Lamda_K, c_S, c_C, c_A, c_K, theta_p_Plus, theta_p_Neg, theta_pc_Plus, theta_pc_Neg, Res_Pos, Res_Neg, theta_u_Plus, theta_u_Neg, D_Plus, D_Neg)
     

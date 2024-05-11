@@ -263,15 +263,15 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     print(f"\nElapsed time: {mins} min + {secs} sec")
                     if Beams != 0:
                         deltaYBeam, rotationBeam = dispShear(Beams)
-                        # removedElements = []
+                        removedElements = []
                         for tagEle, tagNodes in Beams.items():
                             print(f"deltaYBeam {tagEle} = {deltaYBeam[tagEle]*1000:.1f} mm")
-                            # if deltaYBeam[tagEle] > 4.4 *mm:
-                                # if tagEle not in removedElements:
-                                #     ops.remove('ele', tagEle)
-                                    # ops.element('elasticBeamColumn', tagEle, *[tagNodes[0], tagNodes[1]], 1, 1, 1, 1)
-                                    # removedElements.append(tagEle)
-                                # print(f"==--> Beam {tagEle} removed!")
+                            if rotationBeam[tagEle] > 0.08:
+                                if tagEle not in removedElements:
+                                    ops.remove('ele', tagEle)
+                                    ops.element('elasticBeamColumn', tagEle, *[tagNodes[0], tagNodes[1]], 1, 1, 1, 1)
+                                    removedElements.append(tagEle)
+                                print(f"==--> Rotation of Beam {tagEle} is {rotationBeam[tagEle]} which exceeded 0.08 rad, thus removed!")
                                 
                     if OK == 0: break
                     elif OK != 0:

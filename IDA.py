@@ -9,14 +9,14 @@ import numpy                   as np
 #=============================================================================
 #    Options
 #=============================================================================
-recordToLogIDA = True
-
-approach = 1 # "1" for scaling the Average RAS to MCE_AS and 2 for scaling GMR RAS to MCE_AS
-
 exec(open("Input/inputData.py").readlines()[16])  # Assigns SDC from input
 # SDC     = "Dmax"  # "Dmax", "Dmin"
+recordToLogIDA  = True
 
-extraTime   = 0
+approach        = 1                 # "1" for scaling the Average RAS to MCE_AS and 2 for scaling GMR RAS to MCE_AS
+
+
+extraTime       = 0
 
 #=============================================================================
 #    Pre-Settings for IDA
@@ -35,7 +35,9 @@ RAS_average     = np.loadtxt("Input/GM/RAS_average.txt")
 outputDirIDA    = "Output/IDA"; os.makedirs(outputDirIDA, exist_ok=True)
 
 
-
+#=============================================================================
+#    Start IDA
+#=============================================================================
 # Find T1
 with open("MAIN.py") as file:
     lines = file.readlines()[:126]
@@ -43,16 +45,19 @@ code_to_exec = ''.join(lines)
 exec(code_to_exec)
 T1 = Periods[0]
 
+# Record to log option check
 if recordToLogIDA == True: sys.stdout = open('logIDA.txt', 'w') 
 
-
+# Begin
 recList     = recList[0:1]
 numRecords  = len(recList)
 list_S_CT   = []
 for i_rec, rec in enumerate(recList):
+    t_begIDA1   = time.time()
     filePath    = f"Input/GM/{rec}" 
     dtGM        = float(rec[3:10])
     NPTS        = int(rec[11:16])
+    duration    = NPTS *dtGM +extraTime
     S_MT,SF_MCE = fa.get_spectral_acceleration(filePath, dtGM, T1, SDC, RAS_average, outputDirIDA, approach) #Here it should scale the RAS per SDC (Dmax or Dmin) and T1
     
     duration    = NPTS *dtGM +extraTime

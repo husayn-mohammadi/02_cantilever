@@ -143,9 +143,11 @@ for types in typeAnalysis:
     
     # Record Lateral Loading Analysis Results
     fr.recordPushover(tagNodeControl, tagNodeBase, outputDir)
-    Hw = wall.Hw; tf = wall.tf; Hc2 = wall.Hc2
-    if typeBuild == "CantileverColumn" or typeBuild == "buildBeam":
+    if typeBuild == "CantileverColumn":
+        Hw = wall.Hw; tf = wall.tf; Hc2 = wall.Hc2
         fr.recordStressStrain(outputDirWalls, tagEleListToRecord_wall,  wall)
+    if typeBuild == "buildBeam":
+        pass
     elif typeBuild == "coupledWalls":
         fr.recordStressStrain(outputDirWalls, tagEleListToRecord_wall,  wall)
         fr.recordStressStrain(outputDirBeams, tagEleListToRecord_beam,  beam)

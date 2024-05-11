@@ -2,46 +2,67 @@ import os, sys, time
 import openseespy.opensees     as ops
 import functions.FuncPlot      as fp
 import functions.FuncAnalysis  as fa
-# import numpy                   as np
+import numpy                   as np
 # import matplotlib.pyplot       as plt
 
+approach = 1 # "1" for scaling the Average RAS to MCE_AS and 2 for scaling GMR RAS to MCE_AS
 
 start_timeIDA = time.time()
+
+fa.replace_line('MAIN.py', 27, "recordToLog     = False                      # True, False")
+fa.replace_line('MAIN.py', 31, "linearity       = False")
+fa.replace_line('MAIN.py', 32, "typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
+fa.replace_line('MAIN.py', 34, "typeAnalysis    = ['NTHA']             # 'monotonic', 'cyclic', 'NTHA'")
+fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
+fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
+
+# Find T1
+with open("MAIN.py") as file:
+    lines = file.readlines()[:126]
+code_to_exec = ''.join(lines)
+exec(code_to_exec)
+T1 = Periods[0]
+
 recordToLogIDA = True
 if recordToLogIDA == True:
     sys.stdout = open('logIDA.txt', 'w') 
+
 g = 9.80665
 outputDirIDA = "Output/IDA"
 os.makedirs(outputDirIDA, exist_ok=True)
 
 recList     = fa.get_file_names("Input/GM")
-recList     = recList[39:40]
-# recList     = recList[5:10]
-SaTarget    = 1.5 * 0.63 # MCE = 1.5*DBE
+recList     = recList[0:44]
+RAS_average = np.loadtxt("Input/GM/RAS_average.txt")
+exec(open("Input/inputData.py").readlines()[16])  # Assigns SDC from input
+# SDC     = "Dmax"  # "Dmax", "Dmin"
 extraTime   = 0
 numRecords  = len(recList)
 list_S_CT   = []
 for i_rec, rec in enumerate(recList):
     filePath    = f"Input/GM/{rec}" 
-    T1          = 0.25
-    # T1          = fa.analyzeEigen(1)
-    dtGM        = float(rec[:7])
-    NPTS        = int(rec[8:13])
-    SaGM,PGV    = fa.get_spectral_acceleration(filePath, dtGM, T1, outputDirIDA)
+    dtGM        = float(rec[3:10])
+    NPTS        = int(rec[11:16])
+    S_MT,SF_MCE = fa.get_spectral_acceleration(filePath, dtGM, T1, SDC, RAS_average, outputDirIDA, approach) #Here it should scale the RAS per SDC (Dmax or Dmin) and T1
+    
     duration    = NPTS *dtGM +extraTime
-    scaleFactor = SaTarget /SaGM # SaTarget is actually S_MT
-    list_S_T    = []
+    list_SCT    = []
     list_driftMax=[]
     tag         = 1
     t_begIDA1   = time.time()
+    SF_CLP      = 20
     while True:
-        print(f"\n{'#'*65}\nRunning record {i_rec+1:02}/{numRecords:02}: {rec} \nSa = {SaTarget:.3f}*g SF = {scaleFactor:.3f}\n{'#'*65}")
+        S_CTtest = SF_CLP *S_MT
+        print(f"\n\n\n\n\n{'#'*65}")
+        print(f"Running record {i_rec+1:02}/{numRecords:02}: {rec}")
+        print(f"Sa = {S_MT:.3f}*g SF = {SF_CLP:.3f} ==> S_CTtest = {S_CTtest:.3f}")
+        print(f"{'#'*65}\n\n")
         ops.wipe()
         exec(open("MAIN.py").read())
-        list_S_T.append(scaleFactor *SaGM)
+        list_SCT.append(S_CTtest)
         list_driftMax.append(abs(driftMax)*100)
         durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-        fp.plotIDA(list_driftMax, list_S_T, outputDirIDA, rec, mins)
+        fp.plotIDA(list_driftMax, list_SCT, outputDirIDA, rec, mins)
         
         Times = (0.05/abs(driftMax))
         print(f"times = {Times}")
@@ -62,7 +83,7 @@ for i_rec, rec in enumerate(recList):
                 times = 0.95 *Times
             if times < 1.0:
                 times = Times
-            scaleFactor *= times
+            SF_CLP *= times
             sign        = "f"
         else:
             if "sign" not in globals():
@@ -80,11 +101,11 @@ for i_rec, rec in enumerate(recList):
                 times = 1.05 *Times
             if times > 1.0:
                 times = Times
-            scaleFactor *= times
+            SF_CLP *= times
             sign        = "b"
         tag += 1
     durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-    S_CT = fp.plotIDA(list_driftMax, list_S_T, outputDirIDA, rec, mins, True)
+    S_CT = fp.plotIDA(list_driftMax, list_SCT, outputDirIDA, rec, mins, True)
     list_S_CT.append([rec, S_CT])
     print(f"S_CT = {S_CT}")
 print(f"list_S_CT = {list_S_CT}") 
@@ -100,38 +121,39 @@ if recordToLogIDA == True:
     sys.stdout.close()
     sys.stdout = sys.__stdout__
 
-    # scaleFactorList = [ 
-    #                     20.*scaleFactor,
-    #                     14.*scaleFactor,
-    #                     13.*scaleFactor,
-    #                     12.*scaleFactor,
-    #                     11.*scaleFactor,
-    #                     10.*scaleFactor,
-    #                     # 9.0*scaleFactor,
-    #                     # 8.0*scaleFactor,
-    #                     # 7.0*scaleFactor,
-    #                     # 6.0*scaleFactor,
-    #                     5.0*scaleFactor,
-    #                     # 4.0*scaleFactor,
-    #                     # 3.0*scaleFactor,
-    #                     # 2.0*scaleFactor,
-    #                     # 1.5*scaleFactor,
-    #                     # 1.0*scaleFactor,
-    #                     # 0.5*scaleFactor,
-    #                     # 0.2*scaleFactor,
-    #                     0.1*scaleFactor, 
+    # SF_CLPList = [ 
+    #                     20.*SF_CLP,
+    #                     14.*SF_CLP,
+    #                     13.*SF_CLP,
+    #                     12.*SF_CLP,
+    #                     11.*SF_CLP,
+    #                     10.*SF_CLP,
+    #                     # 9.0*SF_CLP,
+    #                     # 8.0*SF_CLP,
+    #                     # 7.0*SF_CLP,
+    #                     # 6.0*SF_CLP,
+    #                     5.0*SF_CLP,
+    #                     # 4.0*SF_CLP,
+    #                     # 3.0*SF_CLP,
+    #                     # 2.0*SF_CLP,
+    #                     # 1.5*SF_CLP,
+    #                     # 1.0*SF_CLP,
+    #                     # 0.5*SF_CLP,
+    #                     # 0.2*SF_CLP,
+    #                     0.1*SF_CLP, 
     #                     ]
-    # for tag, scaleFactor in enumerate(scaleFactorList):
-    #     print(f"\n{'#'*65}\nRunning record {i_rec+1:02}/{numRecords:02}: {rec} for Sa = {SaTarget}*g SF = {scaleFactor}\n{'#'*65}")
+    # for tag, SF_CLP in enumerate(SF_CLPList):
+    #     print(f"\n{'#'*65}\nRunning record {i_rec+1:02}/{numRecords:02}: {rec} for Sa = {SaTarget}*g SF = {SF_CLP}\n{'#'*65}")
     #     ops.wipe()
     #     exec(open("MAIN.py").read())
-    #     list_S_T.append(scaleFactor *SaTarget/g)
+    #     list_SCT.append(SF_CLP *SaTarget/g)
     #     list_driftMax.append(abs(driftMax)*100)
-    #     fp.plotIDA(list_driftMax, list_S_T)
-    # S_CT = fp.plotIDA(list_driftMax, list_S_T, True)
+    #     fp.plotIDA(list_driftMax, list_SCT)
+    # S_CT = fp.plotIDA(list_driftMax, list_SCT, True)
 
 
 
+fa.replace_line('MAIN.py', 27, "recordToLog     = True                      # True, False")
 
 
 

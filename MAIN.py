@@ -29,9 +29,9 @@ modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
 linearity       = False
-typeBuild       = 'buildBeam'            # 'CantileverColumn', 'coupledWalls', 'buildBeam'
+typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
-typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'
+typeAnalysis    = ['NTHA']             # 'monotonic', 'cyclic', 'NTHA'
 
 Lw              = Section['wall']['propWeb'][1] + 2*Section['wall']['propFlange'][1]
 PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
@@ -42,12 +42,12 @@ numSegBeam      = 15
 # Monotonic Pushover Analysis
 incrMono        = 2*((H_typical*n_story)/4250)
 numIncrInit     = 9
-drift           = 0.007
+drift           = 0.002
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
-dY              = 9 *mm
-CPD1            = 1                         # CPD = cyclesPerDisp; which should be an integer
+dY              = 3.5 *mm
+CPD1            = 2                         # CPD = cyclesPerDisp; which should be an integer
 CPD2            = 1
 
 
@@ -70,17 +70,17 @@ dispTarList     = [
 
 # Plotting Options:
 buildingWidth1=20.; buildingHeight1=17.
-plot_undefo     = True
-plot_loaded     = True
+plot_undefo     = False
+plot_loaded     = False
 plot_defo       = True
 sfac            = 10
 beamTheory      = "Timoshenko" # "EulerBernouli", "Timoshenko"
-plot_MomCurv    = True
+plot_MomCurv    = False
 plot_Pushover   = True
 plot_StressStrain=False
 plot_section    = False
 typeSpring      = "elastic"  # "elastic", "IMK_Pinching"
-# Pu_1wall        = Pu_T
+Pu_1wall        = -load['wallG']
 Pu_1wall        = -load['wallG']
 fibered         = False
 #=============================================================================
@@ -110,19 +110,19 @@ for types in typeAnalysis:
         Py = 1
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_wall, numSegWall, "wall", modelFoundation, linearity, typeSpring, beamTheory)
         Beams = 0
-        fa.analyzeEigen(1)
+        Periods = fa.analyzeEigen(1)
     elif typeBuild == "CantileverBeam":
         Py = 1
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildCantileverN(L, Py, PHL_beam, numSegBeam, "beam", modelFoundation, linearity, typeSpring)
         Beams = 0
-        fa.analyzeEigen(1)
+        Periods = fa.analyzeEigen(1)
     elif typeBuild == 'buildBeam':
         tagNodeControl, tagNodeBase, tagEleListToRecord_wall, wall = fm.buildBeam(L_CB, PHL_beam, numSegBeam, rotSpring, linearity, typeSpring, beamTheory, fibered)
         Beams = 0
     elif typeBuild == 'coupledWalls':
         P = n_story * load['wall']
         tagNodeControl, tagNodeBase, buildingWidth, buildingHeight, coords, wall, tagEleListToRecord_wall, beam, tagEleListToRecord_beam, tagNodeLoad, Beams = fm.coupledWalls(H_story_List, L_Bay_List, Lw, P, load, numSegBeam, numSegWall, PHL_wall, PHL_beam, L_CB, typeCB, plot_section, modelFoundation, rotSpring, linearity, typeSpring, beamTheory, fibered)
-        # fa.analyzeEigen(n_story, True)
+        Periods = fa.analyzeEigen(n_story, True)
         
     # Plot Model
     if plot_undefo == True:
@@ -196,7 +196,7 @@ for types in typeAnalysis:
         print("\n\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         print(f"Cyclic Pushover Analysis Initiated at {(time.time() - start_time):.0f}sec.")
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
-        fa.cyclicAnalysis(dispTarList, incrCycl, tagNodeControl, numIncrInit)
+        fa.cyclicAnalysis(dispTarList, incrCycl, tagNodeControl, Beams, numIncrInit)
         finish_time_cyclic = time.time()
         mins = int((finish_time_cyclic - start_time_cyclic)/60)
         secs = int((finish_time_cyclic - start_time_cyclic)%60)
@@ -219,12 +219,16 @@ for types in typeAnalysis:
         print(f"NTHA Initiated at {(time.time() - start_time):.0f}sec.")
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
         if 'filePath' not in globals():
-            filePath    = "Input/GM/0.02000_01500_RSN825_CAPEMEND_CPM000.txt"
-            rec         = filePath[9:]
-            SaGM        = 1.034481507651492 # for example
-            scaleFactor = 8.96144583680962
-            dtGM        = float(rec[:7])
-            NPTS        = int(rec[8:13])
+            filePath    = "Input/GM/01_0.02000_01500_RSN825_CAPEMEND_CPM000.txt"
+            rec         = filePath[9:-4]
+            S_MT        = 1.034481507651492 # for example
+            S_DT        = 2/3 *S_MT
+            S_GT        = 0.98
+            SF_DBE      = S_DT/S_GT # for design purposes
+            SF_MCE      = S_MT/S_GT # for analysis purposes
+            SF_CLP      = 1 # for IDA purposes
+            dtGM        = float(rec[3:10])
+            NPTS        = int(rec[11:16])
             # NPTS        = 20
             duration    = dtGM *NPTS
             tag         = 1
@@ -232,11 +236,11 @@ for types in typeAnalysis:
         a  = fa.read_ground_motion_record(filePath); t = np.array([i *dtGM for i in range(NPTS)])
         ta = np.column_stack((t, a[:NPTS]))
         fr.recordDataNTHA(tagNodeBase, tagNodeControl, outputDirNTHA, tag)
-        fa.NTHA1(tagNodeControl, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, duration, tag, Beams, numIncrInit)
+        fa.NTHA1(tagNodeControl, tagNodeBase, filePath, SF_CLP*SF_MCE, dtGM, NPTS, duration, tag, Beams, numIncrInit)
         if type(tagNodeControl) != list:
             tagNodeControl = [tagNodeControl]
         nFloors = len(tagNodeControl)
-        driftMax = fp.plotNTHA(H_typical, H_first, nFloors, outputDirNTHA, ta, tag, scaleFactor, SaGM, rec[:-4])
+        driftMax = fp.plotNTHA(H_typical, H_first, nFloors, outputDirNTHA, ta, tag, SF_CLP*SF_MCE, S_MT, rec)
         finish_time_NTHA = time.time()
         mins = int((finish_time_NTHA - start_time_NTHA)/60)
         secs = int((finish_time_NTHA - start_time_NTHA)%60)
@@ -244,8 +248,10 @@ for types in typeAnalysis:
         print(f"NTHA Finished in {mins}min+{secs}sec.")
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n\n")
         if plot_loaded == True:
+            if "buildingWidth" not in globals(): buildingWidth=buildingHeight = 10
             opv.plot_loads_2d(nep=17, sfac=False, fig_wi_he=(buildingWidth+buildingWidth1, buildingHeight+buildingHeight1), fig_lbrt=False, fmt_model_loads={'color': 'black', 'linestyle': 'solid', 'linewidth': 1.2, 'marker': '', 'markersize': 1}, node_supports=True, truss_node_offset=0, ax=False)
         if plot_defo == True:
+            if "buildingWidth" not in globals(): buildingWidth=buildingHeight = 10
             sfac = opv.plot_defo(fig_wi_he=(buildingWidth+buildingWidth1, buildingHeight+buildingHeight1),
                                  #fmt_defo={'color': 'blue', 'linestyle': 'solid', 'linewidth': 0.6, 'marker': '.', 'markersize': 3}
                                  )

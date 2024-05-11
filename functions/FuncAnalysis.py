@@ -527,36 +527,63 @@ def read_ground_motion_record(filename):
     ground_motion_record = [float(num) for line in data for num in line.split()]
     return np.array(ground_motion_record)
 
-def get_spectral_acceleration(filename, dt, T1, outputDirIDA):
-        
-    periods = np.linspace(0.001, 8, 500)  # compute the response for 500 periods between T=0.001s and 8.0s
+def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, approach=1):
+    def Sa(T,S_MS=1.5, S_M1=0.9):
+        Ts = S_M1/S_MS
+        T0,TL= 0.2*Ts,8
+        if 0 <= T < T0:
+            Sa  = (0.4 +0.6 *T /T0) *S_MS
+        elif T0 <= T < Ts:
+            Sa  = S_MS
+        elif Ts <= T < TL:
+            Sa  = S_M1 /T
+        elif T >= TL:
+            Sa  = S_M1 *TL /T **2
+        return Sa
+    S_MS, S_M1 = (1.50, 0.90) if SDC == "Dmax" else (0.75, 0.30)
 
-    a = read_ground_motion_record(filename)
-    # record = eqsig.AccSignal(a * g, dt)
-    record = eqsig.AccSignal(a * 1, dt)
-    pga     = record.pga 
-    pgv     = record.pgv *9.80665 *(m/s**2)
-    pgd     = record.pgd *9.80665 *(m/s**2)
+    periods = RAS_average[:,0]
+    a       = read_ground_motion_record(filePath)
+    record  = eqsig.AccSignal(a * 1, dt)
     record.generate_response_spectrum(response_times=periods)
-    S_G     = record.s_a # This gives the array of points corresponding to periods
-    S_Gmax  = max(S_G)
+    
+    Sa_MCE  = [Sa(T, S_MS, S_M1) for T in periods]
+    Sa_GMR  = record.s_a # This gives the array of points corresponding to periods
+    Sa_AVE  = RAS_average[:,1]
+    
     # Find the corresponding value on the vertical axis
-    SaGM = np.interp(T1, periods, record.s_a)
-    rec = filename[9:-4]
+    S_MT    = np.interp(T1, periods, Sa_MCE)
+    S_GT    = np.interp(T1, periods, Sa_GMR)
+    S_AT    = np.interp(T1, periods, Sa_AVE)
+    SaMax   = max(S_MT, S_GT, S_AT)
+
+    rec     = filePath[9:-4]
     if 1:
-        fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
+        fig, ax = plt.subplots(figsize=(7, 5), dpi=200)
         ax.set_ylabel('Sa [g]')
-        ax.set_xlabel('T [sec]')
-        plt.plot(periods, record.s_a, label=f"{rec[:-4]}\nPGA  = {pga:.4f} g\nPGV  = {pgv:.4f} m/s\nPGD  = {pgd:.4f} m")
-        plt.plot([T1, T1], [0,    SaGM], 'r--', label=f"SaGM ={SaGM:.4f} g")
-        plt.plot([0,  T1], [SaGM, SaGM], 'g--', label=f"T1       ={T1:.4f} sec")
+        ax.set_xlabel('Period [sec]')
+        plt.plot(periods, Sa_MCE,           'r-',  label=f"MCE_AS [SDC: {SDC}]")
+        plt.plot(periods, Sa_AVE,           'k--', label="Average R_AS")
+        plt.plot(periods, Sa_GMR,           'b--', label=f"GMR R_AS: {rec}")
+        plt.plot([T1, T1], [0,    SaMax],   'g--', label=f"T1      ={T1:.4f} sec")
+        plt.plot([0,  T1], [S_MT, S_MT],    'r--', label=f"S_MT ={S_MT:.4f} g")
+        plt.plot([0,  T1], [S_AT, S_AT],    'k--', label=f"S_AT  ={S_AT:.4f} g")
+        plt.plot([0,  T1], [S_GT, S_GT],    'b--', label=f"S_GT  ={S_GT:.4f} g")
+        if approach == 1:
+            SF_MCE = S_MT /S_AT
+            Sa_AVEs= SF_MCE *Sa_AVE
+            plt.plot(periods, Sa_AVEs,      'k-',  label=f"Average R_AS [SF_MCE={SF_MCE:.3f}]")
+        else:
+            SF_MCE = S_MT /S_GT
+            Sa_GMRs= SF_MCE *Sa_GMR
+            plt.plot(periods, Sa_GMRs,      'b-',  label=f"GMR R_AS [SF_MCE={SF_MCE:.3f}]")
         fig.suptitle("Acceleration Response Spectrum", fontsize=16)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/ASR-{rec}-{SaGM:.5f}g.png")
+        plt.savefig(f"{outputDirIDA}/ASR-{rec}-{S_GT:.5f}g.png")
         plt.show()
     
-    return SaGM, pgv
+    return S_MT, SF_MCE
 
 
 def plotMomCurv(outputDir, tagEle, section, typeBuild):

@@ -110,14 +110,20 @@ print(f"Mu_CB = {Mu_CB /1000:.1f} kN.m")
 """''''''''''''''''''''''''''''''"""
 # a)    Shear Strength
 Kc          = 1 # AISC 360, Section I4.2 (Usually equals to 1)
-Vn_CB       = 0.6 *Fy *Asw_CB +0.06 *Kc *Ac_CB *(fpc /MPa) **0.5
+if typeSect == "Composite":
+    Vn_CB       = 0.6 *Fy *Asw_CB +0.06 *Kc *Ac_CB *(fpc /MPa) **0.5
+elif typeSect == "I_Shaped":
+    Vn_CB       = 0.6 *Fy *Asw_CB
 Vn_CB_Fi_v  = Fi_v *Vn_CB
 print(f"Vn_CB*Fi_v = {Vn_CB_Fi_v /1000:.1f} kN")
 
 # b)    Flexural Strength
-C_CB        = calc_C(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB)
-print(f"C_CB = {C_CB *1000:.1f} mm")
-Mp_CB       = calc_Mp(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, bf_CB)
+if typeSect == "Composite":
+    C_CB    = calc_C(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB)
+    print(f"C_CB = {C_CB *1000:.1f} mm")
+    Mp_CB   = calc_Mp(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, bf_CB)
+elif typeSect == "I_Shaped":
+    Mp_CB   = Fy *Z_CB
 Mn_CB       = Mp_CB # Assuming that the slenderness ratios in coupling beams are satisfied as per AISC
 Mn_CB_Fi_b  = Fi_b *Mn_CB
 print(f"Mn_CB*Fi_b = {Mn_CB_Fi_b /1000:.1f} kN.m")
@@ -415,7 +421,7 @@ else:
 print(f"Vn_Mp_exp       = {Vn_Mp_exp /1000:.1f} kN")
 
 # 02.02) Flexure
-print(f"C_CB            = {C_CB *1000:.1f} mm")
+# print(f"C_CB            = {C_CB *1000:.1f} mm")
 print(f"Mu_CB           = {Mu_CB /1000:.1f} kN.m")
 print(f"Mn_CB*Fi_b      = {Mn_CB_Fi_b /1000:.1f} kN.m")
 print(f"===>>>DCR_M_CB  = {abs(R__M_CB) *100:.1f}%")

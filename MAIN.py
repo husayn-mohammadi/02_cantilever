@@ -150,7 +150,7 @@ for types in typeAnalysis:
         pass
     elif typeBuild == "coupledWalls":
         fr.recordStressStrain(outputDirWalls, tagEleListToRecord_wall,  wall)
-        fr.recordStressStrain(outputDirBeams, tagEleListToRecord_beam,  beam)
+        # fr.recordStressStrain(outputDirBeams, tagEleListToRecord_beam,  beam)
         
     for tagEle in tagEleListToRecord_wall:
         tagNode = ops.eleNodes(tagEle)

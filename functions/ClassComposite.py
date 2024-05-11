@@ -181,7 +181,7 @@ class compo:
         
                     
         
-    def defineSection(self, plot_section):
+    def defineSection(self, plot_section=False):
         
         # Define Fiber Section
         GJ = 1e8
@@ -230,7 +230,7 @@ class compo:
         else:
             ops.patch('rect', self.tagMatCtConf,  2*self.NfibeY*times2, NfibeZ, *crdsI5, *crdsJ5) #Concrete Core bot
         
-        if plot_section == False: # True , False
+        if plot_section == True: # True , False
             # this part of the code is just to sent out a varibale for plotting the fiber section
             fib_sec = [['section', 'Fiber', self.tagSec, '-GJ', GJ],
     
@@ -326,7 +326,90 @@ class compo:
 # ops.wipe()
 
 
-
+class I_Shaped:
+    def __init__(self, tagSec, tagMat, NfibeY, Fy, E, b1, R0, cR1, cR2, a1, a2, a3, a4, 
+                 tw, Hw, bf, tf, linearity=False):
+        class steel:
+            def __init__(self, E, Fy, Asw, nho_St):
+                self.E      = E
+                self.Fy     = Fy
+                self.G      = G = E /(2 *(1 +nho_St))
+                self.GAveff = G *Asw
+        
+        self.tagMatStFlange     = tagMat
+        self.tagMatStWeb        = tagMat
+        
+        self.tagSec     = tagSec
+        self.tagMat     = tagMat
+        self.NfibeY     = NfibeY
+        self.Fy         = Fy
+        self.E          = E
+        self.b1         = b1
+        self.R0         = R0
+        self.cR1        = cR1
+        self.cR2        = cR2
+        self.a1         = a1
+        self.a2         = a2
+        self.a3         = a3
+        self.a4         = a4
+        
+        self.tw         = tw
+        self.Hw         = Hw
+        self.bf         = bf
+        self.tf         = tf
+        self.d          = d     = Hw +2 *tf
+        self.A          = A     = tw *Hw + 2 *(bf *tf)
+        self.I          = I     = 1/12 *(bf *d **3) -1/12 *((bf -tw) *Hw **3)
+        self.Z          = Z     = (bf * tf) *(Hw +tf) + (tw *Hw /2) *(Hw /2)
+        self.St_Asw     = Asw = tw *Hw
+        
+        self.St_web     = steel(E, Fy, Asw, nho_St)
+        self.GAveff     = self.St_web.GAveff
+        self.EIeff      = E *I
+        self.EAeff      = E *A
+        self.Mp         = Mp    = Z *Fy
+        self.Vp         = Vp    = Asw *(0.6*Fy)
+        self.eMax       = 2.6*Mp/Vp
+        self.eMin       = 1.6*Mp/Vp
+        self.eAve       = 2.0*Mp/Vp
+        # ops.uniaxialMaterial('Steel02', tagMat, Fy, E, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
+    
+    # def defFibSection(self, plot_section=False):
+    #     tw, Hw, bf, tf          = self.tw, self.Hw, self.bf, self.tf
+    #     tagSec, tagMat, NfibeY  = self.tagSec, self.tagMat, self.NfibeY
+        
+    #     # Define Fiber Section
+    #     GJ = 1e8
+    #     # Section Geometry
+    #     ##  Bottom Flange
+    #     crdsI1 = [-(Hw /2 +tf), -bf /2]
+    #     crdsJ1 = [- Hw /2     ,  bf /2]
+    #     ##  Top Flange      
+    #     crdsI3 = [  Hw /2     , -bf /2]
+    #     crdsJ3 = [ (Hw /2 +tf),  bf /2]
+    #     ##  Web
+    #     crdsI2 = [-Hw /2      , -tw   ]
+    #     crdsJ2 = [ Hw /2      ,  tw   ]
+        
+    #     NfibeZ = 1
+    #     ops.section('Fiber', tagSec, '-GJ',   GJ)
+    #     ops.patch  ('rect',  tagMat,  NfibeY, NfibeZ, *crdsI1, *crdsJ1) #Bot Flange
+    #     ops.patch  ('rect',  tagMat,  NfibeY, NfibeZ, *crdsI3, *crdsJ3) #Top Flange
+    #     ops.patch  ('rect',  tagMat,  NfibeY, NfibeZ, *crdsI2, *crdsJ2) #Web
+        
+    #     if plot_section == True: # True , False
+    #         # this part of the code is just to sent out a varibale for plotting the fiber section
+    #         fib_sec =[['section', 'Fiber', tagSec, '-GJ', GJ],
+    
+    #                  ['patch', 'rect', tagMat, NfibeY, NfibeZ, *crdsI1, *crdsJ1], #Bot Flange
+    #                  ['patch', 'rect', tagMat, NfibeY, NfibeZ, *crdsI3, *crdsJ3], #Top Flange
+    #                  ['patch', 'rect', tagMat, NfibeY, NfibeZ, *crdsI2, *crdsJ2], #Web
+    #                  ]
+        
+    #         matcolor = ['y', 'b', 'r', 'g', 'y', 'b', 'r', 'g', 'm', 'k', 'y', 'b', 'r', 'g', 'm', 'k']
+    #         opv.plot_fiber_section(fib_sec, matcolor=matcolor)
+    #         plt.axis('equal')
+    #         plt.show()
 
 
 

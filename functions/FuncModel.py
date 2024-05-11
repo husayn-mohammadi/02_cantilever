@@ -3,7 +3,7 @@ exec(open("MAIN.py").readlines()[19]) # It SHOULD read and execute exec(open("In
 import sys
 import openseespy.opensees     as ops
 # import functions.FuncPlot      as fp
-from functions.ClassComposite import compo
+from functions.ClassComposite import compo, I_Shaped
 
 rigidElement = True # True False
 if rigidElement == True:
@@ -25,7 +25,6 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
     ops.geomTransf('PDelta', tagGTPDelta)
     
     #       Define Section
-    NIP         = 9
     ##      Define beamIntegrator
     tags        = Section[nameSect]['tags']
     propWeb     = Section[nameSect]['propWeb']
@@ -37,7 +36,7 @@ def buildCantileverN(L, P, PlasticHingeLength=1, numSeg=3, nameSect='wall',
     EIeff       = composite.EIeff
     EAeff       = composite.EAeff
     GAveff      = composite.GAveff
-    compo.defineSection(composite, plot_section=True)
+    compo.defineSection(composite, plot_section=False)
 
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
              
@@ -197,29 +196,47 @@ def subStructBeam(typeBuild, tagEleGlobal, tagNodeI, tagNodeJ, tagGT, section, P
             ops.equalDOF(tagNodeI,  tagNodeII, 1, 2, 3)
             ops.equalDOF(tagNodeJ, tagNodeJJ,  1, 2, 3)
     
-    tagEleFibRec = tagNodeII-1
+    tagEleFibRec = tagEleGlobal
+    # tagEleFibRec = tagNodeII-1
     
     return tagEleFibRec
 
+#####################################################################################################################
 def buildBeam(L, PlasticHingeLength=1, numSeg=3, 
               rotSpring=True, linearity=False, 
-              typeSpring="elastic", beamTheory = "EulerBernouli", fibered=True):
+              typeSpring="elastic", beamTheory="EulerBernouli", fibered=True):
+    
     if typeSpring != "elastic" or shearCriticality == True: linearity=True
+    
     #       Define Geometric Transformation
     tagGTLinear = 1
     ops.geomTransf('Linear', tagGTLinear)
     
-    NIP         = 5
     #       Define beamIntegrator
-    nameSect    = 'beam'
-    tags        = Section[nameSect]['tags']
-    propWeb     = Section[nameSect]['propWeb']
-    propFlange  = Section[nameSect]['propFlange']
-    propCore    = Section[nameSect]['propCore']
-    #beam       = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
-    beam        = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
-    compo.printVar(beam)
-    compo.defineSection(beam, plot_section=True)
+    if typeSect == "Composite":
+        nameSect    = 'beam'
+        tags        = Section[nameSect]['tags']
+        propWeb     = Section[nameSect]['propWeb']
+        propFlange  = Section[nameSect]['propFlange']
+        propCore    = Section[nameSect]['propCore']
+        #beam       = compo("beam", *tags, P, lsr, b, NfibeY, *propWeb, *propFlange, *propCore)
+        beam        = compo("beam", *tags, 0, lsr, b, NfibeY, *propWeb, *propFlange, *propCore, linearity)
+        compo.printVar(beam)
+        compo.defineSection(beam)
+        
+    elif typeSect == "I_Shaped":
+        nameSect= 'beam'
+        tags    = Section[nameSect]['tags']
+        hw      = H_CB -2 *t_pfCB
+        beam    = I_Shaped(tags[0], tags[1], NfibeY, Fy, Es, b1, 
+                           *[R0, cR1, cR2], 
+                           *[a1, a2, a3, a4], 
+                           *[t_pwCB, hw, bf_CB, t_pfCB], 
+                           # linearity=False
+                           )
+        # I_Shaped.defFibSection(beam, plot_section=False)
+    
+    
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     k_trans     = c_ktrans *(2 *beam.GAveff /L) *cS
@@ -264,7 +281,7 @@ def buildBeam(L, PlasticHingeLength=1, numSeg=3,
 
 def coupledWalls(H_story_List, L_Bay_List, Lw, P, load, 
                  numSegBeam, numSegWall, PHL_wall, PHL_beam, SBL, 
-                 typeCB="discretizedAllFiber", plot_section=True, modelFoundation=False, 
+                 typeCB="discretizedAllFiber", plot_section=False, modelFoundation=False, 
                  rotSpring=False, linearity=False, typeSpring="elastic", beamTheory = "EulerBernouli", fibered=True):
     
     # k_rot       = 0.4*8400000 *kip*inch # Foundations Rotational Spring
@@ -398,7 +415,6 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
     ops.geomTransf('PDelta', tagGTPDelta)
     
     #   Define beamIntegrator
-    NIP         = 7
     nameSect    = 'wall'
     tags        = Section[nameSect]['tags']
     propWeb     = Section[nameSect]['propWeb']
@@ -411,30 +427,42 @@ def coupledWalls(H_story_List, L_Bay_List, Lw, P, load,
     EAeff       = wall.EAeff; k_elo = 20*EAeff/y; print(f"k_elo = {k_elo}"); ops.uniaxialMaterial('Elastic',   100003, k_elo) # 4* is to consider 12EI/L instead of 3EI/L
     wall.EE     = EIeff
     wall.AA     = EAeff/EIeff
-    compo.defineSection(wall, plot_section=True) # This will create the fiber section
+    compo.defineSection(wall, plot_section=False) # This will create the fiber section
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     if typeSpring != "elastic": linearity=True
-    NIP         = 7
-    nameSect    = 'beam'
-    tags        = Section[nameSect]['tags']
-    propWeb     = Section[nameSect]['propWeb']
-    propFlange  = Section[nameSect]['propFlange']
-    propCore    = Section[nameSect]['propCore']
-    #beam       = compo("beam", *tags, P, lsr, b,     NfibeY, *propWeb, *propFlange, *propCore)
-    beam        = compo("beam", *tags, 0, lsr, 0.114, 5*NfibeY, *propWeb, *propFlange, *propCore, linearity)
-    compo.printVar(beam)
+    if typeSect == "Composite":
+        nameSect    = 'beam'
+        tags        = Section[nameSect]['tags']
+        propWeb     = Section[nameSect]['propWeb']
+        propFlange  = Section[nameSect]['propFlange']
+        propCore    = Section[nameSect]['propCore']
+        #beam       = compo("beam", *tags, P, lsr, b,     NfibeY, *propWeb, *propFlange, *propCore)
+        beam        = compo("beam", *tags, 0, lsr, 0.114, 5*NfibeY, *propWeb, *propFlange, *propCore, linearity)
+        compo.printVar(beam)
+        EIeff       = beam.EIeff
+        EAeff       = beam.EAeff
+        beam.EE     = EIeff
+        beam.AA     = EAeff/EIeff
+        eMax        = beam.eMax
+        eMin        = beam.eMin
+        print(f"{eMin = }\n{eMax = }")
+        compo.defineSection(beam, plot_section=False) # This will create the fiber section
+    elif typeSect == "I_Shaped":
+        nameSect= 'beam'
+        tags    = Section[nameSect]['tags']
+        hw      = H_CB -2 *t_pfCB
+        beam    = I_Shaped(tags[0], tags[1], NfibeY, Fy, Es, b1, 
+                           *[R0, cR1, cR2], 
+                           *[a1, a2, a3, a4], 
+                           *[t_pwCB, hw, bf_CB, t_pfCB], 
+                           # linearity=False
+                           )
+        # I_Shaped.defFibSection(beam, plot_section=False)
+        
     k_trans     = c_ktrans *(2 *beam.GAveff /L) *cS
     Vp          =  beam.St_Asw *(0.6*beam.St_web.Fy)
     ops.uniaxialMaterial('Steel02', 100002, Vp, k_trans, b1, *[R0,cR1,cR2], *[a1, a2, a3, a4])
-    EIeff       = beam.EIeff
-    EAeff       = beam.EAeff
-    beam.EE     = EIeff
-    beam.AA     = EAeff/EIeff
-    eMax        = beam.eMax
-    eMin        = beam.eMin
-    print(f"{eMin = }\n{eMax = }")
-    compo.defineSection(beam, plot_section=True) # This will create the fiber section
     ops.beamIntegration('Legendre', tags[0], tags[0], NIP)  # 'Lobatto', 'Legendre' for the latter NIP should be odd integer.
     
     #   Define Hinge Material for Different Cases

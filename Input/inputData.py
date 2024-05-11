@@ -1,5 +1,5 @@
 "C-PSW/CF Section: Shafaei PP=136"
-# import sys
+import sys
 # from functions.ClassComposite import compo
 exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open(f"Input/units{'US'}.py").read())
 # exec(open("../Input/unitsSI.py").read()) # It SHOULD read and execute exec(open("Input/units    .py").read())
@@ -81,8 +81,11 @@ btie        = 240 *mm # Vertical Spacing
 Stie        = 250 *mm # Horizontal Spacing
 dtie        = 25 *mm
 lsr         = btie /tw
-t_pwCB      = 8 *mm
-t_pfCB      = 8 *mm
+
+typeSect    = "Composite" # Composite, I_Shaped
+ductility   = "moderate"  # moderate, high
+t_pwCB      = 10 *mm
+t_pfCB      = 16 *mm
 H_CB        = 350 *mm
 # tc_CB       = tc
 # bf_CB       = bf
@@ -97,6 +100,7 @@ h_cCB   = h_CB -2 *t_pfCB # Clear height of the web plate
 
 b           = 114*mm
 NfibeY      = 5
+NIP         = 7
 
 Section = {
     'wall': { # C-PSW/CF Wall Section
@@ -195,18 +199,29 @@ We      = (1.0 *DL  +0.25 *LL) *A_SFRS *n_story
 
 
 # Coupling Beam Properties
-As_CB   = 2 *t_pwCB *h_cCB + 2 *t_pfCB *bf_CB
-Ac_CB   = tc_CB *h_cCB
-Asw_CB  = 2 *h_CB *t_pwCB
-# Is_CB   = 2 *(1/12 *t_pwCB *h_cCB **3 + 1/12 *bf_CB *t_pfCB **3 +
-#               t_pfCB *bf_CB *(h_cCB /2 +t_pfCB /2) **2)
-# Ic_CB   = 1/12 *tc_CB *h_CB **3
-
-# EAuncrCB= 0.8 *(Es *As_CB +Ec *Ac_CB)
-# C3      = min(0.9, 0.45 +3 *(As_CB /bf_CB/ h_CB))
-# EIeff_CB= 0.64 *(Es *Is_CB +C3 *Ec *Ic_CB)
-# GAv_CB  = Gs *Asw_CB + Gc *Ac_CB
-
+if typeSect == "Composite":
+    As_CB   = 2 *t_pwCB *h_cCB + 2 *t_pfCB *bf_CB
+    Ac_CB   = tc_CB *h_cCB
+    Asw_CB  = 2 *h_CB *t_pwCB
+    # Is_CB   = 2 *(1/12 *t_pwCB *h_cCB **3 + 1/12 *bf_CB *t_pfCB **3 +
+    #               t_pfCB *bf_CB *(h_cCB /2 +t_pfCB /2) **2)
+    # Ic_CB   = 1/12 *tc_CB *h_CB **3
+    
+    # EAuncrCB= 0.8 *(Es *As_CB +Ec *Ac_CB)
+    # C3      = min(0.9, 0.45 +3 *(As_CB /bf_CB/ h_CB))
+    # EIeff_CB= 0.64 *(Es *Is_CB +C3 *Ec *Ic_CB)
+    # GAv_CB  = Gs *Asw_CB + Gc *Ac_CB
+    
+elif typeSect == "I_Shaped":
+    As_CB   = t_pwCB *h_cCB +2 *t_pfCB *bf_CB
+    Asw_CB  = 2 *h_CB *t_pwCB
+    Z_CB    = (bf_CB * t_pfCB) *(h_cCB +t_pfCB) + (t_pwCB *h_cCB /2) *(h_cCB /2)
+    Ix      = 1/12 *(bf_CB *H_CB **3) -1/12 *((bf_CB -t_pwCB) *h_cCB **3)
+    Iy      = 1/12 *(2 *t_pfCB) *bf_CB **3 +1/12 *h_cCB *t_pwCB **3
+    print(f"Iy/Ix = {Iy/Ix:.3f}")
+    if Iy/Ix <= 0.67:
+        print("Iy/Ix should be greater than 0.67!!!"); sys.exit()
+    
 # Planar SpeedCore Wall Properties
 As      = 2 *(tw *(Lw -2 *tf) + tf *bf)
 Ac      =     tc *(Lw -2 *tf)
@@ -229,12 +244,13 @@ rho_min  = 0.01
 rho_max  = 0.1
 
 # 1.1.  Coupling Beams
-As_CBmin = rho_min *bf_CB *h_CB
-As_CBmax = rho_max *bf_CB *h_CB
-if As_CB < As_CBmin: 
-    print(f"Area of Steel is {abs(As_CBmin-As_CB)/As_CBmin*100:.1f}% less than minimum for Coupling Beams!!!")
-elif As_CB > As_CBmax:
-    print(f"Area of Steel is {abs(As_CBmax-As_CB)/As_CBmax*100:.1f}% greater than maximum for Coupling Beams!!!")
+if typeSect == "Composite":
+    As_CBmin = rho_min *bf_CB *h_CB
+    As_CBmax = rho_max *bf_CB *h_CB
+    if As_CB < As_CBmin: 
+        print(f"Area of Steel is {abs(As_CBmin-As_CB)/As_CBmin*100:.1f}% less than minimum for Coupling Beams!!!")
+    elif As_CB > As_CBmax:
+        print(f"Area of Steel is {abs(As_CBmax-As_CB)/As_CBmax*100:.1f}% greater than maximum for Coupling Beams!!!")
 
 # 1.2.  SpeedCore Walls
 Asmin = rho_min *t_sc *Lw
@@ -248,15 +264,26 @@ elif As > Asmax:
 # 2. Check Plate Slenderness Ratios
 """'''''''''''''''''''''''''''''"""
 # 1.1.  Coupling Beams
-lambdaP_fCB     = 2.37 *(Es /Ry /Fy) **0.5
-lambdaP_wCB     = 2.66 *(Es /Ry /Fy) **0.5
+if typeSect == "Composite":
+    lambdaP_fCB     = 2.37 *(Es /Ry /Fy) **0.5
+    lambdaP_wCB     = 2.66 *(Es /Ry /Fy) **0.5
+    
+    lambda_fCB      = b_cCB /t_pfCB
+    lambda_wCB      = h_cCB /t_pwCB
+        
+elif typeSect == "I_Shaped":
+    if      ductility == "high":
+        lambdaP_fCB     = 1.00 *(Es /Fy) **0.5
+        lambdaP_wCB     = 5.70 *(Es /Fy) **0.5
+    elif    ductility == "moderate":
+        lambdaP_fCB     = 1.00 *(Es /Fy) **0.5
+        lambdaP_wCB     = 5.70 *(Es /Fy) **0.5
+        
+    lambda_fCB      = ((bf_CB -t_pwCB) /2) /t_pfCB
+    lambda_wCB      = h_cCB /t_pwCB
 
-lambda_fCB      = b_cCB /t_pfCB
 R_lambda_fCB    = lambda_fCB/lambdaP_fCB
-
-lambda_wCB      = h_cCB /t_pwCB
 R_lambda_wCB    = lambda_wCB/lambdaP_wCB
-
 if R_lambda_fCB > 1.0: 
     print(f"Coupling Beam Flange Plate Slenderness OVERRATED!!!\n===>>>Lam_fCB/LamP_fCB = {R_lambda_fCB:.2f}")
 if R_lambda_wCB > 1.0: 
@@ -307,11 +334,17 @@ def calc_Mp(fpc, Fy, tc, tw, tf, h, bf, P=0, Ry=1, Rc=1):
           +T2 *((h -y -tf) /2) 
           -P *(h /2 -y))
     return Mp
-
-C_CBexp = calc_C(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, Ry=1.1, Rc=1.3)
-print(f"C_CBexp = {C_CBexp *1000:.1f} mm")
-M_exp   = calc_Mp(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, bf_CB, Ry=1.1, Rc=1.3)
-V_exp   = 0.6 *Ry *Fy *Asw_CB +0.06 *Ac_CB *(Rc *fpc /MPa) **0.5 #!!! Take care NOT to put fpc in other units except MPa
+    
+if typeSect == "Composite":
+    C_CBexp = calc_C(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, Ry=1.1, Rc=1.3)
+    print(f"C_CBexp = {C_CBexp *1000:.1f} mm")
+    M_exp   = calc_Mp(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, bf_CB, Ry=1.1, Rc=1.3)
+    V_exp   = 0.6 *Ry *Fy *Asw_CB +0.06 *Ac_CB *(Rc *fpc /MPa) **0.5 #!!! Take care NOT to put fpc in other units except MPa
+    
+elif typeSect == "I_Shaped":
+    Ry      = 1.1
+    M_exp   =      (1.25 *Ry) *(Fy *Z_CB)
+    V_exp   = 0.6 *(1.25 *Ry) *(Fy *Asw_CB)
 
 print(f"M_exp = {M_exp /1000:.1f} kN.m")
 print(f"V_exp = {V_exp /1000:.1f} kN")
@@ -319,10 +352,17 @@ print(f"V_exp = {V_exp /1000:.1f} kN")
 # Check Flexure-Criticality Condition
 if      V_exp *L_CB /M_exp >= 2.4: 
     print(f"The Beams are Flexure-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}>2.4")
+    if typeSect == "I_Shaped": print("Use a Composite Shape for Flexure-Critical Coupling Beam then try again!!!"); sys.exit(); 
+    shearCriticality=False
 elif    V_exp *L_CB /M_exp <= 1.6: 
     print(f"The Beams are Shear-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}<1.6")
+    if typeSect == "Composite": print("Use a Composite Shape for Flexure-Critical Coupling Beam then try again!!!"); sys.exit();
+    shearCriticality=True
 else:
     print(f"The Beams are Flexure-Shear-Critical, since 1.6 < V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f} <2.4")
+    print("Not acceptable! It should be either Shear-Critical or Flexure-Critical. \nTry Again!!!")
+    sys.exit()
+    shearCriticality=False
 
 
 

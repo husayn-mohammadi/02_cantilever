@@ -204,11 +204,11 @@ def plotIDA(x, y, outputDirIDA, rec, mins, Threshold=False):
             Sa  = interpolate(5, x, y)
             
         plt.plot([5, 5], [0,  Sa], 'r--', linewidth=3)
-        plt.plot([0, 5], [Sa, Sa], 'r--', label=f" Sa_5% = {Sa:.3f} g", linewidth=3)
+        plt.plot([0, 5], [Sa, Sa], 'r--', label=f" S_@5%ID = {Sa:.3f} g", linewidth=3)
         ax.legend()
         fig.suptitle(f"IDA Curve: {rec[:-4]}", fontsize=16)
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/IDA-{rec[:-4]}-{Sa:.5f}g.png")
+        plt.savefig(f"{outputDirIDA}/IDA-{rec[:-4]}.png")
         plt.show()
         return Sa
     else:

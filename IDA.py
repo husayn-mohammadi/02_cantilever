@@ -5,16 +5,36 @@ import functions.FuncAnalysis  as fa
 import numpy                   as np
 # import matplotlib.pyplot       as plt
 
+
+#=============================================================================
+#    Options
+#=============================================================================
+recordToLogIDA = True
+
 approach = 1 # "1" for scaling the Average RAS to MCE_AS and 2 for scaling GMR RAS to MCE_AS
 
-start_timeIDA = time.time()
+exec(open("Input/inputData.py").readlines()[16])  # Assigns SDC from input
+# SDC     = "Dmax"  # "Dmax", "Dmin"
 
+extraTime   = 0
+
+#=============================================================================
+#    Pre-Settings for IDA
+#=============================================================================
+g = 9.80665
+start_timeIDA = time.time()
 fa.replace_line('MAIN.py', 27, "recordToLog     = False                      # True, False")
 fa.replace_line('MAIN.py', 31, "linearity       = False")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
 fa.replace_line('MAIN.py', 34, "typeAnalysis    = ['NTHA']             # 'monotonic', 'cyclic', 'NTHA'")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
 fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
+
+recList         = fa.get_file_names("Input/GM")
+RAS_average     = np.loadtxt("Input/GM/RAS_average.txt")
+outputDirIDA    = "Output/IDA"; os.makedirs(outputDirIDA, exist_ok=True)
+
+
 
 # Find T1
 with open("MAIN.py") as file:
@@ -23,20 +43,10 @@ code_to_exec = ''.join(lines)
 exec(code_to_exec)
 T1 = Periods[0]
 
-recordToLogIDA = True
-if recordToLogIDA == True:
-    sys.stdout = open('logIDA.txt', 'w') 
+if recordToLogIDA == True: sys.stdout = open('logIDA.txt', 'w') 
 
-g = 9.80665
-outputDirIDA = "Output/IDA"
-os.makedirs(outputDirIDA, exist_ok=True)
 
-recList     = fa.get_file_names("Input/GM")
-recList     = recList[0:44]
-RAS_average = np.loadtxt("Input/GM/RAS_average.txt")
-exec(open("Input/inputData.py").readlines()[16])  # Assigns SDC from input
-# SDC     = "Dmax"  # "Dmax", "Dmin"
-extraTime   = 0
+recList     = recList[0:1]
 numRecords  = len(recList)
 list_S_CT   = []
 for i_rec, rec in enumerate(recList):

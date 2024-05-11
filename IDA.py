@@ -13,6 +13,8 @@ exec(open("Input/inputData.py").readlines()[16])  # Assigns SDC from input
 # SDC     = "Dmax"  # "Dmax", "Dmin"
 recordToLogIDA  = True
 
+AlgorithmIDA    = "Hunt_Fill"       # Hunt_Fill, list__SF_CLP, manual__SF_CLP
+SF_CLP          = 1                 # If "manual__SF_CLP" is selected above
 approach        = 1                 # "1" for scaling the Average RAS to MCE_AS and 2 for scaling GMR RAS to MCE_AS
 
 
@@ -60,69 +62,132 @@ for i_rec, rec in enumerate(recList):
     duration    = NPTS *dtGM +extraTime
     S_MT,SF_MCE = fa.get_spectral_acceleration(filePath, dtGM, T1, SDC, RAS_average, outputDirIDA, approach) #Here it should scale the RAS per SDC (Dmax or Dmin) and T1
     
-    duration    = NPTS *dtGM +extraTime
-    list_SCT    = []
-    list_driftMax=[]
-    tag         = 1
-    t_begIDA1   = time.time()
-    SF_CLP      = 20
-    while True:
+    if AlgorithmIDA == "Hunt_Fill":
+        SF_CLP          = 20
+        tag             = 1
+        list_driftMax   = []
+        list_SCTtest    = []
+        while True:
+            S_CTtest = SF_CLP *S_MT
+            list_SCTtest.append(S_CTtest)
+            print(f"\n\n\n\n\n{'#'*65}")
+            print(f"Running record {i_rec+1:02}/{numRecords:02}: {rec}")
+            print(f"Sa = {S_MT:.3f}*g SF = {SF_CLP:.3f} ==> S_CTtest = {S_CTtest:.3f}")
+            print(f"{'#'*65}\n\n")
+            
+            ops.wipe();  exec(open("MAIN.py").read())
+            list_driftMax.append(100 *abs(driftMax))
+            
+            durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
+            fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins)
+            
+            # Hunt & Fill Algorithm starts from here
+            Times = (0.05/abs(driftMax))
+            print(f"times = {Times}")
+            
+            if abs(driftMax) < 0.05:
+                if "sign" not in globals():
+                    sign    = "f"
+                if sign == "b" and 0.04 <= abs(driftMax) <= 0.05:
+                    break
+                times = 0.3 *Times
+                if times < 1.05:
+                    times = 0.5 *Times
+                if times < 1.05:
+                    times = 0.75 *Times
+                if times < 1.05:
+                    times = 0.85 *Times
+                if times < 1.05:
+                    times = 0.95 *Times
+                if times < 1.0:
+                    times = Times
+                SF_CLP *= times
+                sign        = "f"
+            else:
+                if "sign" not in globals():
+                    sign    = "b"
+                if sign == "f" and 0.05 <= abs(driftMax) <= 0.06:
+                    break
+                times = 2 * Times
+                if times > 0.95:
+                    times = 1.5 *Times
+                if times > 0.95:
+                    times = 1.25 *Times
+                if times > 0.95:
+                    times = 1.15 *Times
+                if times > 0.95:
+                    times = 1.05 *Times
+                if times > 1.0:
+                    times = Times
+                SF_CLP *= times
+                sign        = "b"
+            tag += 1
+        # Now Interpolate/Extrapolate to get S_CT
+        durIDA1 = time.time() - t_begIDA1; mins = int(durIDA1 /60)
+        S_CT    = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, True); print(f"S_CT = {S_CT}")
+        list_S_CT.append([rec, S_CT])
+        
+    elif AlgorithmIDA == "list__SF_CLP":
+        SF_CLPList      = [ 
+                            # 20.*SF_CLP,
+                            # 15.*SF_CLP,
+                            # 14.*SF_CLP,
+                            # 13.*SF_CLP,
+                            # 12.*SF_CLP,
+                            # 11.*SF_CLP,
+                            10.*SF_CLP,
+                            9.0*SF_CLP,
+                            8.0*SF_CLP,
+                            7.0*SF_CLP,
+                            6.0*SF_CLP,
+                            5.0*SF_CLP,
+                            4.0*SF_CLP,
+                            3.0*SF_CLP,
+                            2.0*SF_CLP,
+                            1.5*SF_CLP,
+                            1.0*SF_CLP,
+                            # 0.5*SF_CLP,
+                            # 0.2*SF_CLP,
+                            0.1*SF_CLP, 
+                            ]
+        list_driftMax   = []
+        list_SCTtest    = []
+        for tag, SF_CLP in enumerate(SF_CLPList):
+            S_CTtest = SF_CLP *S_MT
+            list_SCTtest.append(S_CTtest)
+            print(f"\n\n\n\n\n{'#'*65}")
+            print(f"Running record {i_rec+1:02}/{numRecords:02}: {rec}")
+            print(f"Sa = {S_MT:.3f}*g SF = {SF_CLP:.3f} ==> S_CTtest = {S_CTtest:.3f}")
+            print(f"{'#'*65}\n\n")
+            
+            ops.wipe(); exec(open("MAIN.py").read())
+            list_driftMax.append(100 *abs(driftMax))
+            
+            durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
+            fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins)
+            
+        # Now Interpolate/Extrapolate to get S_CT
+        durIDA1 = time.time() - t_begIDA1; mins = int(durIDA1 /60)
+        S_CT    = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, True); print(f"S_CT = {S_CT}")
+        list_S_CT.append([rec, S_CT])
+        
+    elif AlgorithmIDA == "manual__SF_CLP":
+        if "list_driftMax" not in globals(): list_driftMax = []
+        if "list_SCTtest"  not in globals(): list_SCTtest  = []
         S_CTtest = SF_CLP *S_MT
+        list_SCTtest.append(S_CTtest)
         print(f"\n\n\n\n\n{'#'*65}")
         print(f"Running record {i_rec+1:02}/{numRecords:02}: {rec}")
         print(f"Sa = {S_MT:.3f}*g SF = {SF_CLP:.3f} ==> S_CTtest = {S_CTtest:.3f}")
         print(f"{'#'*65}\n\n")
-        ops.wipe()
-        exec(open("MAIN.py").read())
-        list_SCT.append(S_CTtest)
-        list_driftMax.append(abs(driftMax)*100)
+        
+        ops.wipe(); exec(open("MAIN.py").read())
+        list_driftMax.append(100 *abs(driftMax))
+        
         durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-        fp.plotIDA(list_driftMax, list_SCT, outputDirIDA, rec, mins)
+        fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins)
         
-        Times = (0.05/abs(driftMax))
-        print(f"times = {Times}")
         
-        if abs(driftMax) < 0.05:
-            if "sign" not in globals():
-                sign    = "f"
-            if sign == "b" and 0.04 <= abs(driftMax) <= 0.05:
-                break
-            times = 0.3 *Times
-            if times < 1.05:
-                times = 0.5 *Times
-            if times < 1.05:
-                times = 0.75 *Times
-            if times < 1.05:
-                times = 0.85 *Times
-            if times < 1.05:
-                times = 0.95 *Times
-            if times < 1.0:
-                times = Times
-            SF_CLP *= times
-            sign        = "f"
-        else:
-            if "sign" not in globals():
-                sign    = "b"
-            if sign == "f" and 0.05 <= abs(driftMax) <= 0.06:
-                break
-            times = 2 * Times
-            if times > 0.95:
-                times = 1.5 *Times
-            if times > 0.95:
-                times = 1.25 *Times
-            if times > 0.95:
-                times = 1.15 *Times
-            if times > 0.95:
-                times = 1.05 *Times
-            if times > 1.0:
-                times = Times
-            SF_CLP *= times
-            sign        = "b"
-        tag += 1
-    durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-    S_CT = fp.plotIDA(list_driftMax, list_SCT, outputDirIDA, rec, mins, True)
-    list_S_CT.append([rec, S_CT])
-    print(f"S_CT = {S_CT}")
 print(f"list_S_CT = {list_S_CT}") 
 
 finish_timeIDA  = time.time()
@@ -136,35 +201,6 @@ if recordToLogIDA == True:
     sys.stdout.close()
     sys.stdout = sys.__stdout__
 
-    # SF_CLPList = [ 
-    #                     20.*SF_CLP,
-    #                     14.*SF_CLP,
-    #                     13.*SF_CLP,
-    #                     12.*SF_CLP,
-    #                     11.*SF_CLP,
-    #                     10.*SF_CLP,
-    #                     # 9.0*SF_CLP,
-    #                     # 8.0*SF_CLP,
-    #                     # 7.0*SF_CLP,
-    #                     # 6.0*SF_CLP,
-    #                     5.0*SF_CLP,
-    #                     # 4.0*SF_CLP,
-    #                     # 3.0*SF_CLP,
-    #                     # 2.0*SF_CLP,
-    #                     # 1.5*SF_CLP,
-    #                     # 1.0*SF_CLP,
-    #                     # 0.5*SF_CLP,
-    #                     # 0.2*SF_CLP,
-    #                     0.1*SF_CLP, 
-    #                     ]
-    # for tag, SF_CLP in enumerate(SF_CLPList):
-    #     print(f"\n{'#'*65}\nRunning record {i_rec+1:02}/{numRecords:02}: {rec} for Sa = {SaTarget}*g SF = {SF_CLP}\n{'#'*65}")
-    #     ops.wipe()
-    #     exec(open("MAIN.py").read())
-    #     list_SCT.append(SF_CLP *SaTarget/g)
-    #     list_driftMax.append(abs(driftMax)*100)
-    #     fp.plotIDA(list_driftMax, list_SCT)
-    # S_CT = fp.plotIDA(list_driftMax, list_SCT, True)
 
 
 

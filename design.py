@@ -46,7 +46,7 @@ numSign = 65
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 2: Analysis for Design
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-fa.replace_line('MAIN.py', 31, "linearity       = True")
+fa.replace_line('MAIN.py', 31, "linearity       = True                     # True is used for ELF design")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
 fa.replace_line('MAIN.py', 43, "incrMono        = 2*((H_typical*n_story)/4250)")
 fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
@@ -193,7 +193,7 @@ print(f"Mu_Both = {Mu_Both /1000:.1f} kN.m")
 
 # EIeff_Ten   = 7.7e9   *kip*inch **2
 # EIeff_Com   = 1.81e10 *kip*inch **2
-fa.replace_line('MAIN.py', 31, "linearity       = False")
+fa.replace_line('MAIN.py', 31, "linearity       = False                     # True is used for ELF design")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'CantileverColumn'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
 fa.replace_line('MAIN.py', 43, "incrMono        = 2*((H_typical)/4250)")
 fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical)")

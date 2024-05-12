@@ -13,9 +13,8 @@ exec(open("Input/inputData.py").readlines()[16])  # Assigns SDC from input
 # SDC     = "Dmax"  # "Dmax", "Dmin"
 recordToLogIDA  = True
 
-AlgorithmIDA    = "Hunt_Fill"       # Hunt_Fill, list__SF_CLP, manual__SF_CLP
-SF_CLP          = 1                 # If "manual__SF_CLP" is selected above
-approach        = 1                 # "1" for scaling the Average RAS to MCE_AS and 2 for scaling GMR RAS to MCE_AS
+AlgorithmIDA    = "list__SF_CLP"       # Hunt_Fill, list__SF_CLP, manual__SF_CLP
+SF_CLP          = 20                # If "manual__SF_CLP" is selected above
 
 approach        = 3                 # "1" for scaling the Average RAS to MCE_AS at T1, 
                                     # "2" for scaling GMR RAS to MCE_AS at T1, 
@@ -54,7 +53,7 @@ T1 = Periods[0]
 if recordToLogIDA == True: sys.stdout = open('logIDA.txt', 'w') 
 
 # Begin
-recList     = recList[0:1]
+recList     = recList[0:44]
 numRecords  = len(recList)
 list_S_CT   = []
 for i_rec, rec in enumerate(recList):

@@ -528,9 +528,25 @@ def read_ground_motion_record(filename):
     return np.array(ground_motion_record)
 
 def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, approach=1):
+    Ti          = 0.2 *T1
+    Tf          = 1.5 *T1
+    def scale_Interval():
+        arrSF       = np.empty((0, 2))
+        for i, T in enumerate(periods):
+            if Ti <= T <= Tf:
+                Sa_MCE90    = 0.9 *Sa(T, S_MS, S_M1)
+                indexT      = np.where(RAS_average[:,0]==T)[0][0]
+                Sa_Avera    = RAS_average[indexT, 1]
+                SF          = Sa_MCE90 /Sa_Avera
+                arrSF = np.append(arrSF, np.array([[T, SF]]), axis=0)
+        print(f"{arrSF =}")
+        SFmax       = max(arrSF[:,1])
+        return SFmax
+    
     def Sa(T,S_MS=1.5, S_M1=0.9):
         Ts = S_M1/S_MS
-        T0,TL= 0.2*Ts,8
+        T0 = 0.2*Ts
+        TL = 8
         if 0 <= T < T0:
             Sa  = (0.4 +0.6 *T /T0) *S_MS
         elif T0 <= T < Ts:
@@ -540,7 +556,7 @@ def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, 
         elif T >= TL:
             Sa  = S_M1 *TL /T **2
         return Sa
-    S_MS, S_M1 = (1.50, 0.90) if SDC == "Dmax" else (0.75, 0.30)
+    S_MS, S_M1 = (1.50, 0.9) if SDC == "Dmax" else (0.75, 0.30)
 
     periods = RAS_average[:,0]
     a       = read_ground_motion_record(filePath)
@@ -548,6 +564,7 @@ def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, 
     record.generate_response_spectrum(response_times=periods)
     
     Sa_MCE  = [Sa(T, S_MS, S_M1) for T in periods]
+    Sa_MCE90= [0.9*Sa(T, S_MS, S_M1) for T in periods]
     Sa_GMR  = record.s_a # This gives the array of points corresponding to periods
     Sa_AVE  = RAS_average[:,1]
     
@@ -556,16 +573,20 @@ def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, 
     S_GT    = np.interp(T1, periods, Sa_GMR)
     S_AT    = np.interp(T1, periods, Sa_AVE)
     SaMax   = max(S_MT, S_GT, S_AT)
-
+    Sai     = Sa(Ti, S_MS, S_M1)
+    Saf     = Sa(Tf, S_MS, S_M1)
     rec     = filePath[9:-4]
     if 1:
         fig, ax = plt.subplots(figsize=(7, 5), dpi=200)
         ax.set_ylabel('Sa [g]')
         ax.set_xlabel('Period [sec]')
-        plt.plot(periods, Sa_MCE,           'r-',  label=f"MCE_AS [SDC: {SDC}]")
+        plt.plot(periods, Sa_MCE,           'r-',  label=f"MCE_AS    [SDC: {SDC}]")
+        plt.plot(periods, Sa_MCE90,         'r-.', label=f"90%MCE_AS [SDC: {SDC}]")
         plt.plot(periods, Sa_AVE,           'k--', label="Average R_AS")
         plt.plot(periods, Sa_GMR,           'b--', label=f"GMR R_AS: {rec}")
-        plt.plot([T1, T1], [0,    SaMax],   'g--', label=f"T1      ={T1:.4f} sec")
+        plt.plot([T1, T1], [0,    SaMax],   'g-',  label=f"T1      ={T1:.4f} sec")
+        plt.plot([Ti, Ti], [0,    Sai  ],   'y--', label=f"0.2T1 ={Ti:.4f} sec")
+        plt.plot([Tf, Tf], [0,    Saf  ],   'y--', label=f"1.5T1 ={Tf:.4f} sec")
         plt.plot([0,  T1], [S_MT, S_MT],    'r--', label=f"S_MT ={S_MT:.4f} g")
         plt.plot([0,  T1], [S_AT, S_AT],    'k--', label=f"S_AT  ={S_AT:.4f} g")
         plt.plot([0,  T1], [S_GT, S_GT],    'b--', label=f"S_GT  ={S_GT:.4f} g")
@@ -573,14 +594,19 @@ def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, 
             SF_MCE = S_MT /S_AT
             Sa_AVEs= SF_MCE *Sa_AVE
             plt.plot(periods, Sa_AVEs,      'k-',  label=f"Average R_AS [SF_MCE={SF_MCE:.3f}]")
-        else:
+        elif approach == 2:
             SF_MCE = S_MT /S_GT
             Sa_GMRs= SF_MCE *Sa_GMR
             plt.plot(periods, Sa_GMRs,      'b-',  label=f"GMR R_AS [SF_MCE={SF_MCE:.3f}]")
+        elif approach == 3:
+            SF_MCE = scale_Interval()
+            Sa_AVEs= SF_MCE *Sa_AVE
+            plt.plot(periods, Sa_AVEs,      'k-',  label=f"Average R_AS [SF_MCE={SF_MCE:.3f}]")
+            
         fig.suptitle("Acceleration Response Spectrum", fontsize=16)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/ASR-{rec}-{S_GT:.5f}g.png")
+        plt.savefig(f"{outputDirIDA}/Spectrum-{rec}.png")
         plt.show()
     
     return S_MT, SF_MCE

@@ -17,6 +17,9 @@ AlgorithmIDA    = "Hunt_Fill"       # Hunt_Fill, list__SF_CLP, manual__SF_CLP
 SF_CLP          = 1                 # If "manual__SF_CLP" is selected above
 approach        = 1                 # "1" for scaling the Average RAS to MCE_AS and 2 for scaling GMR RAS to MCE_AS
 
+approach        = 3                 # "1" for scaling the Average RAS to MCE_AS at T1, 
+                                    # "2" for scaling GMR RAS to MCE_AS at T1, 
+                                    # "3" for scaling the Average RAS to MCE_AS between 0.2T1 to 1.5T1
 
 extraTime       = 0
 

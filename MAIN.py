@@ -28,7 +28,7 @@ recordToLog     = True                      # True, False
 modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
-linearity       = False
+linearity       = False                     # True is used for ELF design
 typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
 typeAnalysis    = ['NTHA']             # 'monotonic', 'cyclic', 'NTHA'
@@ -81,7 +81,7 @@ plot_StressStrain=False
 plot_section    = False
 typeSpring      = "elastic"  # "elastic", "IMK_Pinching"
 Pu_1wall        = -load['wallG']
-Pu_1wall        = -load['wallG']
+# Pu_1wall        = -load['wallG']
 fibered         = False
 #=============================================================================
 #    MAIN

@@ -273,8 +273,8 @@ if typeSect == "Composite":
         
 elif typeSect == "I_Shaped":
     if      ductility == "high":
-        lambdaP_fCB     = 1.00 *(Es /Fy) **0.5
-        lambdaP_wCB     = 5.70 *(Es /Fy) **0.5
+        lambdaP_fCB     = 0.38 *(Es /Fy) **0.5
+        lambdaP_wCB     = 3.76 *(Es /Fy) **0.5
     elif    ductility == "moderate":
         lambdaP_fCB     = 1.00 *(Es /Fy) **0.5
         lambdaP_wCB     = 5.70 *(Es /Fy) **0.5

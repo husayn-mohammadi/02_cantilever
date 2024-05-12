@@ -271,7 +271,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                                     ops.remove('ele', tagEle)
                                     ops.element('elasticBeamColumn', tagEle, *[tagNodes[0], tagNodes[1]], 1, 1, 1, 1)
                                     removedElements.append(tagEle)
-                                print(f"==--> Rotation of Beam {tagEle} is {rotationBeam[tagEle]} which exceeded 0.08 rad, thus removed!")
+                                print(f"==--> Rotation of Beam {tagEle} is {rotationBeam[tagEle]:.3f} which exceeded 0.08 rad, thus removed!")
                                 
                     if OK == 0: break
                     elif OK != 0:

@@ -131,26 +131,28 @@ for i_rec, rec in enumerate(recList):
         
     elif AlgorithmIDA == "list__SF_CLP":
         SF_CLPList      = [ 
-                            # 20.*SF_CLP,
-                            # 15.*SF_CLP,
-                            # 14.*SF_CLP,
-                            # 13.*SF_CLP,
-                            # 12.*SF_CLP,
-                            # 11.*SF_CLP,
-                            10.*SF_CLP,
-                            9.0*SF_CLP,
-                            8.0*SF_CLP,
-                            7.0*SF_CLP,
-                            6.0*SF_CLP,
-                            5.0*SF_CLP,
-                            4.0*SF_CLP,
-                            3.0*SF_CLP,
-                            2.0*SF_CLP,
-                            1.5*SF_CLP,
-                            1.0*SF_CLP,
-                            # 0.5*SF_CLP,
-                            # 0.2*SF_CLP,
-                            0.1*SF_CLP, 
+                            25.,
+                            20.,
+                            17.5,
+                            15.,
+                            14.,
+                            13.,
+                            12.,
+                            11.,
+                            10.,
+                            9.0,
+                            8.0,
+                            7.0,
+                            6.0,
+                            5.0,
+                            4.0,
+                            3.0,
+                            2.0,
+                            # 1.5,
+                            1.0,
+                            # 0.5,
+                            # 0.2,
+                            # 0.1, 
                             ]
         list_driftMax   = []
         list_SCTtest    = []
@@ -176,7 +178,8 @@ for i_rec, rec in enumerate(recList):
     elif AlgorithmIDA == "manual__SF_CLP":
         if "list_driftMax" not in globals(): list_driftMax = []
         if "list_SCTtest"  not in globals(): list_SCTtest  = []
-        S_CTtest = SF_CLP *S_MT
+        tag         = 1
+        S_CTtest    = SF_CLP *S_MT
         list_SCTtest.append(S_CTtest)
         print(f"\n\n\n\n\n{'#'*65}")
         print(f"Running record {i_rec+1:02}/{numRecords:02}: {rec}")

@@ -14,7 +14,7 @@ Ie      = 1.
 R       = 8
 Omega0  = 2.5
 Rho     = 1.
-SDC     = "Dmin"  # "Dmax", "Dmin"
+SDC     = "Dmax"  # "Dmax", "Dmin"
 
     
 
@@ -42,35 +42,37 @@ linearity = 1
 
 #_______________________IMK+Pinching_Hinge_Properties________________________#
 # K0          = 12 *EIeff /L **3 Should be given in the FuncModel.py
-C_K0        = 17
-My_Plus     = 4500 *kN*m
+C_K0        = 70
+My_Plus     = 1300 *kN*m
 My_Neg      = -1 *My_Plus
-as_Plus     = as_Neg      = 0.00000005
-FprPos      = FprNeg      = A_pinch     = 0.7
+as_Plus     = as_Neg      = 0.01
+FprPos      = FprNeg      = A_pinch     = 0.3
 Lamda_S     = Lamda_C     = Lamda_A     = Lamda_K     = 1.0
 c_S         = c_C         = c_A         = c_K         = 1
-theta_p_Plus= theta_p_Neg = 0.003
-theta_pc_Plus=theta_pc_Neg= 0.015
-theta_u_Plus= theta_u_Neg = 0.1
+theta_p_Plus= theta_p_Neg = 0.006
+theta_pc_Plus=theta_pc_Neg= 0.026
+theta_u_Plus= theta_u_Neg = 0.2
 Res_Pos     = Res_Neg     = 0.15
-D_Plus      = D_Neg       = 0.5
+D_Plus      = D_Neg       = 0.1
 
 #_______________________Steel02_ShearingHinge_Properties_____________________#
-b1=0.003
-R0,cR1,cR2= 18.5, 0.9, 0.1
-a1=a3= 0.06
-a2=a4= 1.0
-c_ktrans = 10000
+slope = -0.0004
+R0,cR1,cR2= 18.5, 0.91, 0.06
+a1=a3= 0.00001
+a2=a4= 0.7
+c_ktrans = 0.740603587
+b1=1/c_ktrans * slope
+c_krot   = 100
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 5000 *mm
+Hw          = 3500 *mm
 # L_CB        = 2000 *mm
-L_eff       = 8000 *mm
+L_eff       = 5000 *mm
 L_CB        = L_eff -Hw
 # L_CB        = 6.5 *m -2 *Hw
-tw          = 10 *mm
-tc          = 480 *mm
+tw          = 18 *mm
+tc          = 864 *mm
 tf          = tw
 # tf          = 50 *mm
 bf          = 2*tw +tc
@@ -82,14 +84,14 @@ Stie        = 250 *mm # Horizontal Spacing
 dtie        = 25 *mm
 lsr         = btie /tw
 
-typeSect    = "Composite" # Composite, I_Shaped
+typeSect    = "I_Shaped" # Composite, I_Shaped
 ductility   = "moderate"  # moderate, high
 t_pwCB      = 10 *mm
-t_pfCB      = 16 *mm
+t_pfCB      = 18 *mm
 H_CB        = 350 *mm
 # tc_CB       = tc
-# bf_CB       = bf
-tc_CB       = 400 *mm
+# bf_CB       = bf -2 *tw
+tc_CB       = 600 *mm
 bf_CB       = tc_CB +2 *t_pwCB
 
 Lw      = Hw
@@ -126,7 +128,7 @@ Section = {
 #=============================================================================
 #    Frame Data:
 #=============================================================================
-n_story         = 22
+n_story         = 15
 H_typical       = 4.25      *m#14        *ft
 H_first         = 5.2       *m #17        *ft
 LDR_CB          = L_CB /H_CB; print(f"LDR_CB = {LDR_CB:.3f}")

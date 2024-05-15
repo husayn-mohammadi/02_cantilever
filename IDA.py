@@ -1,4 +1,4 @@
-import os, sys, time
+import os, sys, time, shutil
 import openseespy.opensees     as ops
 import functions.FuncPlot      as fp
 import functions.FuncAnalysis  as fa
@@ -53,7 +53,9 @@ T1 = Periods[0]
 if recordToLogIDA == True: sys.stdout = open('logIDA.txt', 'w') 
 
 # Begin
-recList     = recList[0:44]
+rec_i = 2
+rec_f = rec_i+1
+recList     = recList[rec_i-1:rec_f-1]
 numRecords  = len(recList)
 list_S_CT   = []
 for i_rec, rec in enumerate(recList):
@@ -81,7 +83,7 @@ for i_rec, rec in enumerate(recList):
             list_driftMax.append(100 *abs(driftMax))
             
             durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-            fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins)
+            fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP)
             
             # Hunt & Fill Algorithm starts from here
             Times = (0.05/abs(driftMax))
@@ -126,33 +128,33 @@ for i_rec, rec in enumerate(recList):
             tag += 1
         # Now Interpolate/Extrapolate to get S_CT
         durIDA1 = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-        S_CT    = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, True); print(f"S_CT = {S_CT}")
+        S_CT    = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP, True); print(f"S_CT = {S_CT}")
         list_S_CT.append([rec, S_CT])
         
     elif AlgorithmIDA == "list__SF_CLP":
         SF_CLPList      = [ 
-                            25.,
-                            20.,
-                            17.5,
-                            15.,
-                            14.,
-                            13.,
-                            12.,
-                            11.,
-                            10.,
-                            9.0,
-                            8.0,
-                            7.0,
-                            6.0,
-                            5.0,
-                            4.0,
-                            3.0,
-                            2.0,
+                            0.1, 
+                            # 0.2,
+                            # 0.5,
                             # 1.5,
                             1.0,
-                            # 0.5,
-                            # 0.2,
-                            # 0.1, 
+                            2.0,
+                            3.0,
+                            4.0,
+                            # 5.0,
+                            # 6.0,
+                            # 7.0,
+                            # 8.0,
+                            # 9.0,
+                            # 10.,
+                            # 11.,
+                            # 12.,
+                            # 13.,
+                            # 14.,
+                            # 15.,
+                            # 17.5,
+                            # 20.,
+                            # 25.,
                             ]
         list_driftMax   = []
         list_SCTtest    = []
@@ -168,11 +170,11 @@ for i_rec, rec in enumerate(recList):
             list_driftMax.append(100 *abs(driftMax))
             
             durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-            fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins)
+            fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP)
             
         # Now Interpolate/Extrapolate to get S_CT
         durIDA1 = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-        S_CT    = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, True); print(f"S_CT = {S_CT}")
+        S_CT    = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP, True); print(f"S_CT = {S_CT}")
         list_S_CT.append([rec, S_CT])
         
     elif AlgorithmIDA == "manual__SF_CLP":
@@ -190,8 +192,10 @@ for i_rec, rec in enumerate(recList):
         list_driftMax.append(100 *abs(driftMax))
         
         durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-        fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins)
-        
+        fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP)
+    
+    # Save the log to record directory
+    shutil.copy('logIDA.txt', f'{outputDirIDA}/{rec[:-4]}/logIDA.txt')
         
 print(f"list_S_CT = {list_S_CT}") 
 

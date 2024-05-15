@@ -242,7 +242,8 @@ for types in typeAnalysis:
         if type(tagNodeControl) != list:
             tagNodeControl = [tagNodeControl]
         nFloors = len(tagNodeControl)
-        driftMax = fp.plotNTHA(H_typical, H_first, nFloors, outputDirNTHA, ta, tag, SF_CLP*SF_MCE, S_MT, rec)
+        if 'recordToLogIDA' in globals(): outputDirNTHA = outputDirIDA
+        driftMax = fp.plotNTHA(H_typical, H_first, nFloors, outputDirNTHA, ta, tag, SF_CLP, SF_MCE, S_MT, rec)
         finish_time_NTHA = time.time()
         mins = int((finish_time_NTHA - start_time_NTHA)/60)
         secs = int((finish_time_NTHA - start_time_NTHA)%60)

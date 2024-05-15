@@ -108,21 +108,21 @@ def plotStressStrain(outputDir,tagEleList):
     plt.tight_layout()
     plt.show()
     
-def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, scaleFactor, SaGM, rec):
-    os.makedirs(f"{outputDir}/{rec}", exist_ok=True)
+def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, , SF_CLP, SF_MCE, S_MT, rec):
+    rec     = rec[:-4]; os.makedirs(f"{outputDir}/{rec}", exist_ok=True)
     n       = nFloors -1
     fig, ax = plt.subplots(n+1, 1, figsize=(10, 5*n), dpi=100)
     ax[n].set_xlabel('time (s)')
     
     # Ground Motion
     gmt     = ta[:, 0]
-    gma     = ta[:, 1] *scaleFactor
+    gma     = ta[:, 1] *SF_CLP *SF_MCE
     igmaMax = np.argmax(np.abs(gma))
     gmaMax  = gma[igmaMax]
     gmtMax  = gmt[igmaMax]
     ax[0].set_ylabel('GMA [g]')
     ax[0].plot(gmt, gma, linewidth=0.8)
-    ax[0].plot(gmtMax, gmaMax, color='red', marker='o', label=f"PGA = {abs(gmaMax):.4f}g\nS_T = {scaleFactor *SaGM:.4f} g")
+    ax[0].plot(gmtMax, gmaMax, color='red', marker='o', label=f"PGA = {abs(gmaMax):.4f}g\nS_T = {SF_CLP *S_MT:.4f} g")
     ax[0].legend()
     
     disp    = np.loadtxt(f"{outputDir}/disp{tag}.txt", delimiter= ' ')
@@ -163,7 +163,7 @@ def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, scaleFactor, SaGM,
     
     fig.suptitle(f"Dynamic Analysis Curves: {rec}", fontsize=16)
     plt.tight_layout()
-    plt.savefig(f"{outputDir}/{rec}/GM-{rec}-{scaleFactor *SaGM:.5f}g.png")
+    plt.savefig(f"{outputDir}/{rec}/GM-{SF_CLP:.3f}-{S_MT:.5f}g.png")
     # plt.show()
     driftMax = max(driftMAX)
     return driftMax
@@ -190,8 +190,8 @@ def interpolate(Xp, x, y):
     result_min = min(results)
     return result_min
 
-def plotIDA(x, y, outputDirIDA, rec, mins, Threshold=False):
-    os.makedirs(f"{outputDirIDA}/{rec[:-4]}", exist_ok=True)
+def plotIDA(x, y, outputDirIDA, rec, mins, SF_CLP, Threshold=False):
+    rec     = rec[:-4]; os.makedirs(f"{outputDirIDA}/{rec}", exist_ok=True)
     if Threshold == True:
         fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=200)
         ax.set_xlabel('Drift (%)')
@@ -206,9 +206,9 @@ def plotIDA(x, y, outputDirIDA, rec, mins, Threshold=False):
         plt.plot([5, 5], [0,  Sa], 'r--', linewidth=3)
         plt.plot([0, 5], [Sa, Sa], 'r--', label=f" S_@5%ID = {Sa:.3f} g", linewidth=3)
         ax.legend()
-        fig.suptitle(f"IDA Curve: {rec[:-4]}", fontsize=16)
+        fig.suptitle(f"IDA Curve: {rec}", fontsize=16)
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/IDA-{rec[:-4]}.png")
+        plt.savefig(f"{outputDirIDA}/{rec}/IDA-{Sa:.5f}g.png")
         plt.show()
         return Sa
     else:
@@ -220,7 +220,7 @@ def plotIDA(x, y, outputDirIDA, rec, mins, Threshold=False):
         ax.legend()
         fig.suptitle(f"IDA Curve: {rec}", fontsize=16)
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/{rec[:-4]}/IDA-{rec[:-4]}-{mins}.png")
+        plt.savefig(f"{outputDirIDA}/{rec}/IDA-{SF_CLP:.2f}.png")
         # plt.show()
 
 def plotMomCurv(outputDir, tagEle, section, typeBuild):

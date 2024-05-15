@@ -539,7 +539,7 @@ def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, 
                 Sa_Avera    = RAS_average[indexT, 1]
                 SF          = Sa_MCE90 /Sa_Avera
                 arrSF = np.append(arrSF, np.array([[T, SF]]), axis=0)
-        print(f"{arrSF =}")
+        # print(f"{arrSF =}")
         SFmax       = max(arrSF[:,1])
         return SFmax
     
@@ -606,7 +606,8 @@ def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, 
         fig.suptitle("Acceleration Response Spectrum", fontsize=16)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/Spectrum-{rec}.png")
+        os.makedirs(f"{outputDirIDA}/{rec}", exist_ok=True)
+        plt.savefig(f"{outputDirIDA}/{rec}/Spectrum-{rec}.png")
         plt.show()
     
     return S_MT, SF_MCE

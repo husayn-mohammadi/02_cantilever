@@ -220,7 +220,7 @@ def plotIDA(x, y, outputDirIDA, rec, mins, SF_CLP, Threshold=False):
         ax.legend()
         fig.suptitle(f"IDA Curve: {rec}", fontsize=16)
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/{rec}/IDA-{SF_CLP:.2f}.png")
+        plt.savefig(f"{outputDirIDA}/{rec}/IDA-{SF_CLP:.2f}-{x[-1]:.3f}.png")
         # plt.show()
 
 def plotMomCurv(outputDir, tagEle, section, typeBuild):

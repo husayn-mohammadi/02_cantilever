@@ -108,7 +108,7 @@ def plotStressStrain(outputDir,tagEleList):
     plt.tight_layout()
     plt.show()
     
-def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, , SF_CLP, SF_MCE, S_MT, rec):
+def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, SF_CLP, SF_MCE, S_MT, rec):
     rec     = rec[:-4]; os.makedirs(f"{outputDir}/{rec}", exist_ok=True)
     n       = nFloors -1
     fig, ax = plt.subplots(n+1, 1, figsize=(10, 5*n), dpi=100)

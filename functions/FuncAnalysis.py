@@ -315,7 +315,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     break
         if OK < 0: break
         if typeAnalysis == "NTHA":
-            driftMaxAllowed = 0.06
+            driftMaxAllowed = 0.07
             if curD()[1] >= driftMaxAllowed: 
                 print(f"driftMax = {curD()[1] *100} % >= {driftMaxAllowed *100} % ==> the next scaleFactor will be applied now!")
                 break

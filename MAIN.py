@@ -29,9 +29,9 @@ modelFoundation = True
 rotSpring       = True
 exertGravityLoad= True
 linearity       = False                     # True is used for ELF design
-typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
+typeBuild       = 'buildBeam'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'
 typeCB          = 'discritizedBothEnds'     # 'discretizedAllFiber', 'FSF', 'FSW', discritizedBothEnds (FSF = FlexureShearFlexure, FSW = FlexureShearWall)
-typeAnalysis    = ['NTHA']             # 'monotonic', 'cyclic', 'NTHA'
+typeAnalysis    = ['cyclic']             # 'monotonic', 'cyclic', 'NTHA'
 
 Lw              = Section['wall']['propWeb'][1] + 2*Section['wall']['propFlange'][1]
 PHL_wall        = 2/3 * Section['wall']['propWeb'][1]
@@ -41,12 +41,12 @@ numSegBeam      = 15
 # SBL             = 1                    # Length of Shear Link (Shear Beam)
 # Monotonic Pushover Analysis
 incrMono        = 2*((H_typical*n_story)/4250)
-numIncrInit     = 9
-drift           = 0.002
+numIncrInit     = 7
+drift           = 0.001
 dispTarget      = drift*(H_typical*n_story)
 # Cyclic Pushover Analysis
 incrCycl        = incrMono
-dY              = 3.5 *mm
+dY              = 17 *mm
 CPD1            = 2                         # CPD = cyclesPerDisp; which should be an integer
 CPD2            = 1
 

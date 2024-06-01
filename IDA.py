@@ -76,7 +76,7 @@ T1 = Periods[0]
 if recordToLogIDA == True: sys.stdout = open('logIDA.txt', 'w') 
 
 # Begin
-rec_i = 2
+rec_i = 1
 rec_f = rec_i+1
 recList     = recList[rec_i-1:rec_f-1]
 numRecords  = len(recList)
@@ -156,15 +156,19 @@ for i_rec, rec in enumerate(recList):
         
     elif AlgorithmIDA == "list__SF_CLP":
         SF_CLPList      = [ 
-                            0.1, 
-                            # 0.2,
-                            # 0.5,
-                            # 1.5,
+                            0.05, 
+                            0.1,
+                            0.2,
+                            0.3,
+                            0.4,
+                            0.5,
                             1.0,
+                            1.5,
                             2.0,
+                            2.5,
                             3.0,
                             4.0,
-                            # 5.0,
+                            5.0,
                             # 6.0,
                             # 7.0,
                             # 8.0,
@@ -199,9 +203,9 @@ for i_rec, rec in enumerate(recList):
             storeData(f"{outputDirIDA}/{rec[:-4]}/IDA-{rec[:2]}.csv", arrIDA)
             
         # Now Interpolate/Extrapolate to get S_CT
-        durIDA1 = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-        S_CT    = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP, True); print(f"S_CT = {S_CT}")
-        list_S_CT.append([rec, S_CT])
+        # durIDA1 = time.time() - t_begIDA1; mins = int(durIDA1 /60)
+        # S_CT    = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP, True); print(f"S_CT = {S_CT}")
+        # list_S_CT.append([rec, S_CT])
         
     elif AlgorithmIDA == "manual__SF_CLP":
         if "list_driftMax" not in globals(): list_driftMax = []

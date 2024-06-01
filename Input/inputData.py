@@ -60,24 +60,28 @@ slope = -0.0004
 R0,cR1,cR2= 18.5, 0.91, 0.06
 a1=a3= 0.00001
 a2=a4= 0.7
-c_ktrans = 0.740603587
+c_ktrans = 0.6125
 b1=1/c_ktrans * slope
 c_krot   = 100
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 3500 *mm
-# L_CB        = 2000 *mm
-L_eff       = 5000 *mm
-L_CB        = L_eff -Hw
+Hw          = 3300 *mm
+L_CB        = 2790 *mm
+L_eff       = L_CB +Hw
+# L_eff       = 5150 *mm
+# L_CB        = L_eff -Hw
 # L_CB        = 6.5 *m -2 *Hw
-tw          = 18 *mm
-tc          = 864 *mm
+tw          = 24 *mm
+RhoW        = 0.04
+bf          = 1 /RhoW *(2 *tw)
+# tc          = 1344 *mm
 tf          = tw
 # tf          = 50 *mm
-bf          = 2*tw +tc
-t_sc        = 2*tw +tc
-RhoW        = 2 *tw /t_sc
+# bf          = 2*tw +tc
+tc          = bf -2*tw
+t_sc        = bf
+# RhoW        = 2 *tw /t_sc
 
 btie        = 240 *mm # Vertical Spacing
 Stie        = 250 *mm # Horizontal Spacing
@@ -86,13 +90,15 @@ lsr         = btie /tw
 
 typeSect    = "I_Shaped" # Composite, I_Shaped
 ductility   = "moderate"  # moderate, high
-t_pwCB      = 10 *mm
-t_pfCB      = 18 *mm
+t_pwCB      = 8 *mm
+t_pfCB      = 25 *mm
 H_CB        = 350 *mm
 # tc_CB       = tc
 # bf_CB       = bf -2 *tw
-tc_CB       = 600 *mm
-bf_CB       = tc_CB +2 *t_pwCB
+# tc_CB       = 700 *mm
+# bf_CB       = tc_CB +2 *t_pwCB
+bf_CB       = 700 *mm
+tc_CB       = bf_CB -2 *t_pwCB
 
 Lw      = Hw
 b_cCB   = bf_CB -2 *t_pwCB

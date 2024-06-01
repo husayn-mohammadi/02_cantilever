@@ -1,5 +1,5 @@
 "C-PSW/CF Section: Shafaei PP=136"
-# import sys
+import sys
 # from functions.ClassComposite import compo
 exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open(f"Input/units{'US'}.py").read())
 # exec(open("../Input/unitsSI.py").read()) # It SHOULD read and execute exec(open("Input/units    .py").read())
@@ -14,6 +14,9 @@ Ie      = 1.
 R       = 8
 Omega0  = 2.5
 Rho     = 1.
+SDC     = "Dmax"  # "Dmax", "Dmin"
+
+    
 
 # Composite wall resistance factor
 Fi_v = Fi_b = Fi_c = Fi_t = 0.9
@@ -26,61 +29,94 @@ Fi_v = Fi_b = Fi_c = Fi_t = 0.9
 # Material
 Es      = 200       *GPa
 Gs      = 77.2      *GPa
-Fy      = 420       *MPa
-Fu      = 470       *MPa
+Fy      = 50 *ksi
+Fu      = 65 *ksi
 Ry      = 1.1
 
-fpc     = 45        *MPa
-Ec      = 31026     *MPa
-Gc      = 12410.6   *MPa
+fpc     = 6 *ksi
+Ec      = 4500 *ksi
+Gc      = 1800 *ksi
 Rc      = 1.3
 
 linearity = 1
 
 #_______________________IMK+Pinching_Hinge_Properties________________________#
 # K0          = 12 *EIeff /L **3 Should be given in the FuncModel.py
-C_K0        = 17
-My_Plus     = 7500 *kN*m
+C_K0        = 70
+My_Plus     = 1300 *kN*m
 My_Neg      = -1 *My_Plus
-as_Plus     = as_Neg      = 0.00000005
-FprPos      = FprNeg      = A_pinch     = 0.7
+as_Plus     = as_Neg      = 0.01
+FprPos      = FprNeg      = A_pinch     = 0.3
 Lamda_S     = Lamda_C     = Lamda_A     = Lamda_K     = 1.0
 c_S         = c_C         = c_A         = c_K         = 1
-theta_p_Plus= theta_p_Neg = 0.003
-theta_pc_Plus=theta_pc_Neg= 0.015
-theta_u_Plus= theta_u_Neg = 0.1
+theta_p_Plus= theta_p_Neg = 0.006
+theta_pc_Plus=theta_pc_Neg= 0.026
+theta_u_Plus= theta_u_Neg = 0.2
 Res_Pos     = Res_Neg     = 0.15
-D_Plus      = D_Neg       = 0.5
+D_Plus      = D_Neg       = 0.1
 
-
+#_______________________Steel02_ShearingHinge_Properties_____________________#
+slope = -0.0004
+R0,cR1,cR2= 18.5, 0.91, 0.06
+a1=a3= 0.00001
+a2=a4= 0.7
+c_ktrans = 0.6125
+b1=1/c_ktrans * slope
+c_krot   = 100
 #=============================================================================
 #    Elements
 #=============================================================================
-Hw          = 3.3330    *m
-H_CB        = 0.6096    *m
-bf          = 0.6096    *m
-tw          = 0.0142875 *m
-RhoW        = 2 *tw /bf
+Hw          = 3300 *mm
+L_CB        = 2790 *mm
+L_eff       = L_CB +Hw
+# L_eff       = 5150 *mm
+# L_CB        = L_eff -Hw
+# L_CB        = 6.5 *m -2 *Hw
+tw          = 24 *mm
+RhoW        = 0.04
+bf          = 1 /RhoW *(2 *tw)
+# tc          = 1344 *mm
 tf          = tw
-tc          = bf - 2*tw
-t_sc        = tc + 2*tw
-btie        = 0.3048    *m # Vertical Spacing
-Stie        = 0.3048    *m # Horizontal Spacing
-dtie        = 0.0254    *m
-lsr         = btie/tw
-t_pfCB      = 0.015     *m
-t_pwCB      = t_pfCB
+# tf          = 50 *mm
+# bf          = 2*tw +tc
+tc          = bf -2*tw
+t_sc        = bf
+# RhoW        = 2 *tw /t_sc
+
+btie        = 240 *mm # Vertical Spacing
+Stie        = 250 *mm # Horizontal Spacing
+dtie        = 25 *mm
+lsr         = btie /tw
+
+typeSect    = "I_Shaped" # Composite, I_Shaped
+ductility   = "moderate"  # moderate, high
+t_pwCB      = 8 *mm
+t_pfCB      = 25 *mm
+H_CB        = 350 *mm
+# tc_CB       = tc
+# bf_CB       = bf -2 *tw
+# tc_CB       = 700 *mm
+# bf_CB       = tc_CB +2 *t_pwCB
+bf_CB       = 700 *mm
+tc_CB       = bf_CB -2 *t_pwCB
+
+Lw      = Hw
+b_cCB   = bf_CB -2 *t_pwCB
+t_cCB   = bf_CB -2 *t_pwCB
+h_CB    = H_CB
+h_cCB   = h_CB -2 *t_pfCB # Clear height of the web plate
 
 b           = 114*mm
-NfibeY      = 15
+NfibeY      = 5
+NIP         = 7
 
 Section = {
     'wall': { # C-PSW/CF Wall Section
         #tags       = [tagSec, tagMatStFlange, tagMatStWeb, tagMatCtUnconf, tagMatCtConf]
         'tags'      : [1,      1,              2,           3,              4           ],
         #propStPart = [B,      H,         Es,      Fy,      Fu,      eps_sh, eps_ult, nu,   alpha, beta, gamma, Cf,  a1,  limit] 
-        'propWeb'   : [tw,     Hw,        Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
-        'propFlange': [bf,     tf,        Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propWeb'   : [tw,     (Hw-2*tf), Es,      Fy,      Fu,      0.007,  0.2,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propFlange': [bf,     tf,        Es,      Fy,      Fu,      0.007,  0.2,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
         #propCore   = [tc,     fpc,       wc,      lamConf, lamUnconf]
         'propCore'  : [tc,     fpc,       0.2*mm,  0.05,     0.25    ]
     },
@@ -88,26 +124,26 @@ Section = {
         #tags       = [tagSec, tagMatStFlange, tagMatStWeb, tagMatCtUnconf, tagMatCtConf]
         'tags'      : [2,      5,              6,           7,              8           ],
         #propStPart = [B,      H,         Es,      Fy,      Fu,      eps_sh, eps_ult, nu,   alpha, beta, gamma, Cf,  a1,  limit] 
-        'propWeb'   : [t_pwCB, H_CB,      Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
-        'propFlange': [bf,     t_pfCB,    Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propWeb'   : [t_pwCB, h_cCB,     Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
+        'propFlange': [bf_CB,  t_pfCB,    Es,      Fy,      Fu,      0.007,  0.12,    0.28, 0.65,  1.0,  1.0,   0.5, 4.3, 0.01],
         #propCore   = [tc,     fpc,       wc,      lamConf, lamUnconf]
-        'propCore'  : [tc,     fpc,       0.2*mm,  0.05,     0.25     ]
+        'propCore'  : [tc_CB,  fpc,       0.2*mm,  0.05,     0.25     ]
     },
     }
 
 #=============================================================================
 #    Frame Data:
 #=============================================================================
-n_story         = 8
-H_typical       = 14        *ft
-H_first         = 17        *ft
-L_CB            = 2.4384    *m
+n_story         = 15
+H_typical       = 4.25      *m#14        *ft
+H_first         = 5.2       *m #17        *ft
 LDR_CB          = L_CB /H_CB; print(f"LDR_CB = {LDR_CB:.3f}")
 L_Bay           = Hw + L_CB #(Hw+2*tf) + L_CB
 H_story_List    = [H_first, *((n_story-1)*[H_typical])]       # [Hstory1, *((numStories-1)*[HstoryTypical])]
 L_Bay_List      = 2*[L_Bay]#, 5.*m, 5.*m, 5.*m]        # [*LBays]
 
-L               = L_CB /1
+# L               = L_CB /1
+L               = H_first
 
 # Building Geometry
 Lf              = 200   *ft
@@ -125,7 +161,7 @@ ALR             = 0.02  # Axial Load Ratio
 Py              = ALR * Pno
 #   Frame Loads
 load            = {}
-DL_Floor        = 12    *psf #90 *psf
+DL_Floor        = 120   *psf #90 *psf
 DL_PWalls       = 0 #25 *psf
 LL_Floor        = 50    *psf
 LL_Roof         = 0 #20 *psf
@@ -136,7 +172,8 @@ L_Bay_x         = (42.5 +30) /2 *ft
 A_Tributary     = 0.5*L_Bay_y * L_Bay_x
 DL_Tributary    = A_Tributary * DL_Floor
 LL_Tributary    = A_Tributary * LL_Floor
-load["wall"]    = 1.0*DL_Tributary + 0.25*LL_Tributary
+load["wall"]    = 1.0*DL_Tributary + 0.25*LL_Tributary # This is to calculate the effective weight of the building for earthquake force 
+load["wallG"]   = 1.2*DL_Tributary + 1.60*LL_Tributary # This is for gravity analysis of the structure
 # LoadG           = 72
 # load["wall"]    = LoadG * kip
 
@@ -147,10 +184,17 @@ A_Leaning       = A_SFRS - A_Tributary*n_Bay_x
 L_PWall         = L_Bay_y + ((n_Bay_x+1) * L_Bay_x) - n_Bay_x*Hw
 DL_Leaning      = A_Leaning * DL_Floor + L_PWall*H_typical * DL_PWalls
 LL_Leaning      = A_Leaning * LL_Floor
-load["leaningColumn"] = 1.0*DL_Leaning + 0.25*LL_Leaning
+load["leaningColumn"] = 1.0*DL_Leaning + 0.25*LL_Leaning # This is to calculate the effective weight of the building for earthquake force 
+load["leaningColumnG"]= 1.2*DL_Leaning + 1.60*LL_Leaning  # This is for gravity analysis of the structure
 # load["leaningColumn"] = 0 * kip
 
 
+if SDC == "Dmax":
+    S_MS    = 1.5
+    S_M1    = 0.9
+else:
+    S_MS    = 0.75
+    S_M1    = 0.3
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #                   Step 1: Input Data
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -160,32 +204,39 @@ LL      = LL_Floor +LL_Roof
 
 We      = (1.0 *DL  +0.25 *LL) *A_SFRS *n_story
 
-# Wall and Coupling Beam Sections
-Lw      = Hw
-b_CB    = bf
-h_CB    = H_CB
 
 
 # Coupling Beam Properties
-As_CB   = 2 *t_pwCB *h_CB + 2 *t_pfCB *(b_CB -2 *t_pwCB)
-Ac_CB   = (b_CB -2 *t_pwCB) *(h_CB -2 *t_pfCB)
-Asw_CB  = 2 *h_CB *t_pwCB
-# Is_CB   = 2 *(1/12 *t_pwCB *h_CB **3 + 1/12 *(b_CB -2 *t_pwCB) *t_pfCB **3 +
-#             t_pfCB *(b_CB -2 *t_pwCB) *((h_CB -t_pfCB) /2) **2)
-# Ic_CB   = 1/12 *(b_CB -2 *t_pwCB) *(h_CB -2 *t_pfCB) **3
-
-# EAuncrCB= 0.8 *(Es *As_CB +Ec *Ac_CB)
-# C3      = min(0.9, 0.45 +3 *(As_CB /b_CB/ h_CB))
-# EIeff_CB= 0.64 *(Es *Is_CB +C3 *Ec *Ic_CB)
-# GAv_CB  = Gs *Asw_CB + Gc *Ac_CB
-
+if typeSect == "Composite":
+    As_CB   = 2 *t_pwCB *h_cCB + 2 *t_pfCB *bf_CB
+    Ac_CB   = tc_CB *h_cCB
+    Asw_CB  = 2 *h_CB *t_pwCB
+    # Is_CB   = 2 *(1/12 *t_pwCB *h_cCB **3 + 1/12 *bf_CB *t_pfCB **3 +
+    #               t_pfCB *bf_CB *(h_cCB /2 +t_pfCB /2) **2)
+    # Ic_CB   = 1/12 *tc_CB *h_CB **3
+    
+    # EAuncrCB= 0.8 *(Es *As_CB +Ec *Ac_CB)
+    # C3      = min(0.9, 0.45 +3 *(As_CB /bf_CB/ h_CB))
+    # EIeff_CB= 0.64 *(Es *Is_CB +C3 *Ec *Ic_CB)
+    # GAv_CB  = Gs *Asw_CB + Gc *Ac_CB
+    
+elif typeSect == "I_Shaped":
+    As_CB   = t_pwCB *h_cCB +2 *t_pfCB *bf_CB
+    Asw_CB  = 2 *h_CB *t_pwCB
+    Z_CB    = (bf_CB * t_pfCB) *(h_cCB +t_pfCB) + (t_pwCB *h_cCB /2) *(h_cCB /2)
+    Ix      = 1/12 *(bf_CB *H_CB **3) -1/12 *((bf_CB -t_pwCB) *h_cCB **3)
+    Iy      = 1/12 *(2 *t_pfCB) *bf_CB **3 +1/12 *h_cCB *t_pwCB **3
+    print(f"Iy/Ix = {Iy/Ix:.3f}")
+    if Iy/Ix <= 0.67:
+        print("Iy/Ix should be greater than 0.67!!!"); sys.exit()
+    
 # Planar SpeedCore Wall Properties
-As      = tw *(2 *(Lw -2 *tw) + 2 *t_sc)
-Ac      = Lw *t_sc -As
+As      = 2 *(tw *(Lw -2 *tf) + tf *bf)
+Ac      =     tc *(Lw -2 *tf)
 Asw     = 2 *Lw *tw
-# Is      = (2 *(1/12 *tw *(Lw -2 *tw) **3) + 
-#            2 *(1/12 *t_sc *tw **3 + t_sc*tw *((Lw -tw) /2) **2))
-# Ic      = 1/12 * (t_sc -2 *tw) * (Lw -2 *tw) **3
+# Is      = (2 *(1/12 *tw *(Lw -2 *tf) **3) + 
+#            2 *(1/12 *bf *tf **3 + bf *tf *(Lw /2 +tf /2) **2))
+# Ic      = 1/12 * tc * (Lw -2 *tw) **3
 
 # EAeff   = Es *As  +0.45 *Ec *Ac
 # EIeff   = Es *Is  +0.35 *Ec *Ic
@@ -201,36 +252,46 @@ rho_min  = 0.01
 rho_max  = 0.1
 
 # 1.1.  Coupling Beams
-As_CBmin = rho_min *b_CB *h_CB
-As_CBmax = rho_max *b_CB *h_CB
-if As_CB < As_CBmin: 
-    print("Area of Steel is less than minimum for Coupling Beams!!!")
-elif As_CB > As_CBmax:
-    print("Area of Steel is greater than maximum for Coupling Beams!!!")
+if typeSect == "Composite":
+    As_CBmin = rho_min *bf_CB *h_CB
+    As_CBmax = rho_max *bf_CB *h_CB
+    if As_CB < As_CBmin: 
+        print(f"Area of Steel is {abs(As_CBmin-As_CB)/As_CBmin*100:.1f}% less than minimum for Coupling Beams!!!")
+    elif As_CB > As_CBmax:
+        print(f"Area of Steel is {abs(As_CBmax-As_CB)/As_CBmax*100:.1f}% greater than maximum for Coupling Beams!!!")
 
 # 1.2.  SpeedCore Walls
 Asmin = rho_min *t_sc *Lw
 Asmax = rho_max *t_sc *Lw
 if As < Asmin: 
-    print("Area of Steel is less than minimum for Composite Walls!!!")
+    print(f"Area of Steel is {abs(Asmin-As)/Asmin*100:.1f}% less than minimum for Composite Walls!!!")
 elif As > Asmax:
-    print("Area of Steel is greater than maximum for Composite Walls!!!")
+    print(f"Area of Steel is {abs(Asmax-As)/Asmax*100:.1f}% greater than maximum for Composite Walls!!!")
 
 
 # 2. Check Plate Slenderness Ratios
 """'''''''''''''''''''''''''''''"""
 # 1.1.  Coupling Beams
-lambdaP_fCB     = 2.37 *(Es /Ry /Fy) **0.5
-lambdaP_wCB     = 2.66 *(Es /Ry /Fy) **0.5
+if typeSect == "Composite":
+    lambdaP_fCB     = 2.37 *(Es /Ry /Fy) **0.5
+    lambdaP_wCB     = 2.66 *(Es /Ry /Fy) **0.5
+    
+    lambda_fCB      = b_cCB /t_pfCB
+    lambda_wCB      = h_cCB /t_pwCB
+        
+elif typeSect == "I_Shaped":
+    if      ductility == "high":
+        lambdaP_fCB     = 0.38 *(Es /Fy) **0.5
+        lambdaP_wCB     = 3.76 *(Es /Fy) **0.5
+    elif    ductility == "moderate":
+        lambdaP_fCB     = 1.00 *(Es /Fy) **0.5
+        lambdaP_wCB     = 5.70 *(Es /Fy) **0.5
+        
+    lambda_fCB      = ((bf_CB -t_pwCB) /2) /t_pfCB
+    lambda_wCB      = h_cCB /t_pwCB
 
-b_cCB           = b_CB -2 *t_pwCB
-lambda_fCB      = b_cCB /t_pfCB
 R_lambda_fCB    = lambda_fCB/lambdaP_fCB
-
-h_cCB           = h_CB -2 *t_pfCB # Clear height of the web plate
-lambda_wCB      = h_cCB /t_pwCB
 R_lambda_wCB    = lambda_wCB/lambdaP_wCB
-
 if R_lambda_fCB > 1.0: 
     print(f"Coupling Beam Flange Plate Slenderness OVERRATED!!!\n===>>>Lam_fCB/LamP_fCB = {R_lambda_fCB:.2f}")
 if R_lambda_wCB > 1.0: 
@@ -259,29 +320,57 @@ if R_lambda_tbs > 1.0:
 
 # 3. Check Shear Criticality of Coupling Beams
 """''''''''''''''''''''''''''''''''''''''''"""
-t_cCB   = b_CB -2 *t_pwCB
+def calc_C(fpc, Fy, tc, tw, tf, h, P=0, Ry=1, Rc=1):
+    if   P < 0:
+        print("Section is under compression.")
+    elif P > 0:
+        print("Section is under tension.")    
+    C = ((0.85 *Rc  *fpc *tc *tf +2 *tw *Ry *Fy *h -P)/
+         (0.85 *Rc  *fpc *tc     +4 *tw *Ry *Fy))
+    return C
+def calc_Mp(fpc, Fy, tc, tw, tf, h, bf, P=0, Ry=1, Rc=1):
+    y       = calc_C(fpc, Fy, tc, tw, tf, h, P, Ry, Rc)
+    C1 = T1 = bf *tf             *Ry *Fy
+    C2      = 2 *tw *(y -tf)     *Ry *Fy
+    C3      = tc    *(y -tf)     *Rc *(0.85 *fpc)
+    T2      = 2 *tw *(h -y - tf) *Ry *Fy
 
-C_CBexp = ((2 *t_pwCB *Ry *Fy*h_CB  +0.85 *Rc *fpc *t_cCB *t_pfCB)/
-           (4 *t_pwCB *Ry *Fy       +0.85 *Rc *fpc *t_cCB))
-print(f"C_CBexp = {C_CBexp *1000:.1f} mm")
-C_1exp  = (b_CB -2 *t_pwCB) *t_pfCB *Ry *Fy
-C_2exp  = 2 *t_pwCB *C_CBexp *Ry *Fy
-C_3exp  = 0.85 *Rc *fpc *t_cCB *(C_CBexp -t_pfCB)
-T_1exp  = (b_CB -2 *t_pwCB) *t_pfCB *Ry *Fy
-T_2exp  = 2 *t_pwCB *(h_CB -C_CBexp) *Ry *Fy
-M_exp = (C_1exp *(C_CBexp -t_pfCB /2) +
-            C_2exp *(C_CBexp /2) +
-            C_3exp *((C_CBexp -t_pfCB) /2) +
-            T_1exp *(h_CB -C_CBexp -t_pfCB /2) +
-            T_2exp *((h_CB -C_CBexp) /2))
-V_exp    = 0.6 *Ry *Fy *Asw_CB +0.06 *Ac_CB *(Rc *fpc /MPa) **0.5 #!!! Take care NOT to put fpc in other units except MPa
+    Mp = ( C1 *( y -tf     /2) 
+          +C2 *((y -tf)    /2) 
+          +C3 *((y -tf)    /2) 
+          +T1 *( h -y -tf  /2) 
+          +T2 *((h -y -tf) /2) 
+          -P *(h /2 -y))
+    return Mp
+    
+if typeSect == "Composite":
+    C_CBexp = calc_C(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, Ry=1.1, Rc=1.3)
+    print(f"C_CBexp = {C_CBexp *1000:.1f} mm")
+    M_exp   = calc_Mp(fpc, Fy, tc_CB, t_pwCB, t_pfCB, h_CB, bf_CB, Ry=1.1, Rc=1.3)
+    V_exp   = 0.6 *Ry *Fy *Asw_CB +0.06 *Ac_CB *(Rc *fpc /MPa) **0.5 #!!! Take care NOT to put fpc in other units except MPa
+    
+elif typeSect == "I_Shaped":
+    Ry      = 1.1
+    M_exp   =      (1.25 *Ry) *(Fy *Z_CB)
+    V_exp   = 0.6 *(1.25 *Ry) *(Fy *Asw_CB)
 
 print(f"M_exp = {M_exp /1000:.1f} kN.m")
 print(f"V_exp = {V_exp /1000:.1f} kN")
 
 # Check Flexure-Criticality Condition
-if V_exp *L_CB /M_exp >= 2.6: 
-    print("Flexure-Criticality Confirmed!")
+if      V_exp *L_CB /M_exp >= 2.4: 
+    print(f"The Beams are Flexure-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}>2.4")
+    if typeSect == "I_Shaped": print("Use a Composite Shape for Flexure-Critical Coupling Beam then try again!!!"); sys.exit(); 
+    shearCriticality=False
+elif    V_exp *L_CB /M_exp <= 1.6: 
+    print(f"The Beams are Shear-Critical, since V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f}<1.6")
+    if typeSect == "Composite": print("Use a Composite Shape for Flexure-Critical Coupling Beam then try again!!!"); sys.exit();
+    shearCriticality=True
+else:
+    print(f"The Beams are Flexure-Shear-Critical, since 1.6 < V_exp *L_CB /M_exp is = {V_exp *L_CB /M_exp:.2f} <2.4")
+    print("Not acceptable! It should be either Shear-Critical or Flexure-Critical. \nTry Again!!!")
+    sys.exit()
+    shearCriticality=False
 
 
 

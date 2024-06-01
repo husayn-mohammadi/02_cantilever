@@ -32,10 +32,10 @@ def rayleighDamping(zeta):
     # rayleigh(alphaM, betaK, betaKinit, betaKcomm)
     ops.rayleigh(alphaM, 0.0, betaKinit, 0.0)
 
-def Sa(T):
+def Sa(T,S_MS=1.5, S_M1=0.9):
     Method  = 1
-    S_MS    = 1.5; S_DS = 2/3 *S_MS
-    S_M1    = 0.9; S_D1 = 2/3 *S_M1
+    S_DS    = 2/3 *S_MS
+    S_D1    = 2/3 *S_M1
     Ts      = S_D1/S_DS
     T0      = 0.2 *Ts
     TL      = 8
@@ -55,15 +55,12 @@ def Sa(T):
     return Sa
 
 def verDistFact(We, T, h_1, h_typ, n_story):
-    TList   = [0.5, 2.5]
-    kList   = [1, 2]
     if 0 <= T < 0.5:
         k = 1
     elif T >= 2.5:
         k = 2
     else:
-        # k = 0.5 *(T -0.5) +1
-        k = np.interp(T, TList, kList)
+        k = 0.5 *(T -0.5) +1
     def h(n):
         if n == 1:
             return h_1
@@ -91,16 +88,16 @@ def gravity(load, tagNodeLoad):
     print(f"Type of tagNodeLoad is {type(tagNodeLoad)}")
     if type(tagNodeLoad) == int: 
         print("Loading is based on Cantilever Column Structure.")
-        ops.load(tagNodeLoad, 0.0, -abs(load), 0.0)
+        ops.load(tagNodeLoad, 0.0, load, 0.0)
     else:
         print("Loading is based on Shear Wall Structure.")
         for element, tagNodes in tagNodeLoad.items():
             if element == "wall":
                 for tagNode in tagNodes:
-                    ops.load(tagNode, 0.0, -abs(load["wall"]), 0.0)
+                    ops.load(tagNode, 0.0, -abs(load["wallG"]), 0.0)
             elif element == "leaningColumn":
                 for tagNode in tagNodes:
-                    ops.load(tagNode, 0.0, -abs(load["leaningColumn"]), 0.0)
+                    ops.load(tagNode, 0.0, -abs(load["leaningColumnG"]), 0.0)
             else:
                 print("In GravityLoading element type was unknown!"); sys.exit()
     
@@ -122,12 +119,25 @@ def gravity(load, tagNodeLoad):
     # ops.analyze(1)
     ops.loadConst('-time', 0.0)
 
-def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, dispList, dispTarget, t_beg, numIncrInit=5):
+def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, dispList, dispTarget, t_beg, Beams, numIncrInit=5):
     if type(tagNodeLoad) == list:
         tagNodeControl  = tagNodeLoad[-1]
     else:
         tagNodeControl  = tagNodeLoad
-        
+    
+    def dispShear(Beams):
+        rotation={}
+        deltaY={}
+        for tagEle, tagNodes in Beams.items():
+            coordI          = ops.nodeCoord(tagNodes[0])
+            coordJ          = ops.nodeCoord(tagNodes[1])
+            L               = ((coordJ[0] -coordI[0]) **2 +(coordJ[1] -coordI[1]) **2) **0.5
+            dispYI          = ops.nodeDisp(tagNodes[0], 2)
+            dispYJ          = ops.nodeDisp(tagNodes[1], 2)
+            deltaY[tagEle]  = abs(dispYJ - dispYI)
+            rotation[tagEle]= abs(dispYJ - dispYI) /L
+        return deltaY, rotation
+    
     def curD():
         if typeAnalysis=="NTHA":
             
@@ -155,7 +165,7 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                 height  = ops.nodeCoord(tagNodeLoad)[1] - ops.nodeCoord(tagNodeBase)[1]
                 dispTop = ops.nodeDisp(tagNodeLoad, dofNodeControl)
                 dispBot = ops.nodeDisp(tagNodeBase, dofNodeControl)
-                # driftMax=driftAve= abs(dispTop - dispBot)/height
+                driftMax=driftAve= abs(dispTop - dispBot)/height
             return t, driftMax
         else:
             d = ops.nodeDisp(tagNodeControl, dofNodeControl)
@@ -207,8 +217,8 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
         dispTar         = iii * incrFrac
         testerList      = [
             'EnergyIncr', 
-            'NormDispIncr', 
             'NormUnbalance', 
+            'NormDispIncr', 
             ]#, 'RelativeNormUnbalance']
         algorithmList   = [*(1*[
             'KrylovNewton', 
@@ -216,11 +226,11 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
             'RaphsonNewton', 
             'NewtonLineSearch', 
             ])] #, 'Linear', 'Newton', 'NewtonLineSearch', 'ModifiedNewton', 'KrylovNewton', 'SecantNewton', 'RaphsonNewton', 'PeriodicNewton', 'BFGS', 'Broyden'
-        numIter = 100; gamma = 0.5; beta = 0.25
-        numIncrMax = 30000; incrMin = 1e-6
+        numIter = 500; gamma = 0.5; beta = 0.25
+        numIncrMax = 30000; incrMin = 1e-5
         
-        tolForce    = 0.0001 *N
-        tolDisp     = 0.00001 *mm
+        tolForce    = 0.0000001 *N
+        tolDisp     = 0.0000001 *m
         
         numIncr     = numIncrInit
         incr        = incrFrac/numIncrInit
@@ -251,6 +261,18 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     print(f"AnalyzeOutput\t= {OK}")
                     t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
                     print(f"\nElapsed time: {mins} min + {secs} sec")
+                    if Beams != 0:
+                        deltaYBeam, rotationBeam = dispShear(Beams)
+                        removedElements = []
+                        for tagEle, tagNodes in Beams.items():
+                            print(f"deltaYBeam {tagEle} = {deltaYBeam[tagEle]*1000:.1f} mm")
+                            if rotationBeam[tagEle] > 0.08:
+                                if tagEle not in removedElements:
+                                    ops.remove('ele', tagEle)
+                                    ops.element('elasticBeamColumn', tagEle, *[tagNodes[0], tagNodes[1]], 1, 1, 1, 1)
+                                    removedElements.append(tagEle)
+                                print(f"==--> Rotation of Beam {tagEle} is {rotationBeam[tagEle]:.3f} which exceeded 0.08 rad, thus removed!")
+                                
                     if OK == 0: break
                     elif OK != 0:
                         t_now=time.time(); elapsed_time=t_now-t_beg; mins=int(elapsed_time/60); secs=int(elapsed_time%60)
@@ -293,13 +315,13 @@ def convergeIt(typeAnalysis, tagNodeLoad, tagNodeBase, dofNodeControl, incrFrac,
                     break
         if OK < 0: break
         if typeAnalysis == "NTHA":
-            driftMaxAllowed = 0.06
+            driftMaxAllowed = 0.07
             if curD()[1] >= driftMaxAllowed: 
                 print(f"driftMax = {curD()[1] *100} % >= {driftMaxAllowed *100} % ==> the next scaleFactor will be applied now!")
                 break
     return OK
 
-def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2, distributeOnWalls=True): 
+def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2, Beams, distributeOnWalls=True): 
     
     t_beg           = time.time()
     T1              = analyzeEigen(1)[0]
@@ -350,7 +372,7 @@ def pushoverDCF(dispTarget, incrInit, numIncrInit, tagNodeLoad, tagNodeLoad2, di
     numFrac     = int(delta/incrInit)
     incrFrac    = delta/numFrac
     asTagNodeBase = 1 #it is not going to be used at all in this analysis. it is just to fill a positional argument
-    OK          = convergeIt("Monotonic", tagNodeLoad, asTagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, ['This is a list'], dispTarget, t_beg, numIncrInit)
+    OK          = convergeIt("Monotonic", tagNodeLoad, asTagNodeBase, dofNodeControl, incrFrac, numFrac, disp, dispIndex, ['This is a list'], dispTarget, t_beg, Beams, numIncrInit)
     return OK
 
 def calcDrift(tagNodeLoad, tagNodeBase, dofNodeControl):
@@ -374,11 +396,11 @@ def calcDrift(tagNodeLoad, tagNodeBase, dofNodeControl):
         driftMax=driftAve= abs(dispTop - dispBot)/height
     return driftMax, driftAve
 
-def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList):
+def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList, S_MS=1.5, S_M1=0.9):
     t_beg           = time.time()
     T1              = analyzeEigen(3, True)[0]
     Cvx             = verDistFact(We, T1, h_1, h_typ, n_story)
-    C_V_base        = Sa(T1) /(R /Ie)
+    C_V_base        = Sa(T1, S_MS, S_M1) /(R /Ie)
     V_base          = C_V_base *We
     dofNodeControl  = 1
     tagTSLinear     = 2
@@ -422,7 +444,7 @@ def pushoverLCF(tagNodeLoad, tagNodeBase, tagEleList):
     return T1, driftMax, V_base, shearAverage
     
 
-def cyclicAnalysis(dispList, incrInit, tagNodeLoad, numIncrInit=2):
+def cyclicAnalysis(dispList, incrInit, tagNodeLoad, Beams, numIncrInit=2):
     asTagNodeBase   = 1 #it is not going to be used at all in this analysis. it is just to fill a positional argument
     t_beg           = time.time()
     dofNodeControl  = 1
@@ -458,13 +480,13 @@ def cyclicAnalysis(dispList, incrInit, tagNodeLoad, numIncrInit=2):
             incrFrac    = delta/numFrac
             OK          = convergeIt('Cyclic', tagNodeLoad, asTagNodeBase, dofNodeControl, 
                                      incrFrac, numFrac, disp, dispIndex, dispList, 
-                                     dispTarget, t_beg, numIncrInit)
+                                     dispTarget, t_beg, Beams, numIncrInit)
             if OK < 0: break
         if OK < 0: break
     return OK
 
 
-def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag):
+def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag, Beams, numIncrInit=2):
     # ops.wipeAnalysis()
     t_beg           = time.time()
     rayleighDamping(0.05)
@@ -482,7 +504,8 @@ def NTHA1(tagNodeLoad, tagNodeBase, filePath, scaleFactor, dtGM, NPTS, Tmax, tag
     ops.system('FullGeneral')
     
     # Run Analysis
-    OK = convergeIt('NTHA', tagNodeLoad, tagNodeBase, dofNodeControl, dtGM, NPTS, Tmax, 0, ["No list required!"], Tmax, t_beg, numIncrInit=2)
+    OK = convergeIt('NTHA', tagNodeLoad, tagNodeBase, dofNodeControl, dtGM, NPTS, Tmax, 0, 
+                    ["No list required!"], Tmax, t_beg, Beams, numIncrInit)
     ops.wipeAnalysis()
     return OK
 
@@ -504,35 +527,90 @@ def read_ground_motion_record(filename):
     ground_motion_record = [float(num) for line in data for num in line.split()]
     return np.array(ground_motion_record)
 
-def get_spectral_acceleration(filename, dt, T, outputDirIDA):
-    a = read_ground_motion_record(filename)
-    periods = np.linspace(0.001, 5, 500)  # compute the response for 500 periods between T=0.001s and 5.0s
+def get_spectral_acceleration(filePath, dt, T1, SDC, RAS_average, outputDirIDA, approach=1):
+    Ti          = 0.2 *T1
+    Tf          = 1.5 *T1
+    def scale_Interval():
+        arrSF       = np.empty((0, 2))
+        for i, T in enumerate(periods):
+            if Ti <= T <= Tf:
+                Sa_MCE90    = 0.9 *Sa(T, S_MS, S_M1)
+                indexT      = np.where(RAS_average[:,0]==T)[0][0]
+                Sa_Avera    = RAS_average[indexT, 1]
+                SF          = Sa_MCE90 /Sa_Avera
+                arrSF = np.append(arrSF, np.array([[T, SF]]), axis=0)
+        # print(f"{arrSF =}")
+        SFmax       = max(arrSF[:,1])
+        return SFmax
+    
+    def Sa(T,S_MS=1.5, S_M1=0.9):
+        Ts = S_M1/S_MS
+        T0 = 0.2*Ts
+        TL = 8
+        if 0 <= T < T0:
+            Sa  = (0.4 +0.6 *T /T0) *S_MS
+        elif T0 <= T < Ts:
+            Sa  = S_MS
+        elif Ts <= T < TL:
+            Sa  = S_M1 /T
+        elif T >= TL:
+            Sa  = S_M1 *TL /T **2
+        return Sa
+    S_MS, S_M1 = (1.50, 0.9) if SDC == "Dmax" else (0.75, 0.30)
 
-    # record = eqsig.AccSignal(a * g, dt)
-    record = eqsig.AccSignal(a * 1, dt)
-    pga     = record.pga 
-    pgv     = record.pgv *9.80665 *(m/s**2)
-    pgd     = record.pgd *9.80665 *(m/s**2)
+    periods = RAS_average[:,0]
+    a       = read_ground_motion_record(filePath)
+    record  = eqsig.AccSignal(a * 1, dt)
     record.generate_response_spectrum(response_times=periods)
-    times = record.response_times
-
+    
+    Sa_MCE  = [Sa(T, S_MS, S_M1) for T in periods]
+    Sa_MCE90= [0.9*Sa(T, S_MS, S_M1) for T in periods]
+    Sa_GMR  = record.s_a # This gives the array of points corresponding to periods
+    Sa_AVE  = RAS_average[:,1]
+    
     # Find the corresponding value on the vertical axis
-    SaGM = np.interp(T, times, record.s_a)
-    rec = filename[9:-4]
+    S_MT    = np.interp(T1, periods, Sa_MCE)
+    S_GT    = np.interp(T1, periods, Sa_GMR)
+    S_AT    = np.interp(T1, periods, Sa_AVE)
+    SaMax   = max(S_MT, S_GT, S_AT)
+    Sai     = Sa(Ti, S_MS, S_M1)
+    Saf     = Sa(Tf, S_MS, S_M1)
+    rec     = filePath[9:-4]
     if 1:
-        fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
+        fig, ax = plt.subplots(figsize=(7, 5), dpi=200)
         ax.set_ylabel('Sa [g]')
-        ax.set_xlabel('T [sec]')
-        plt.plot(times, record.s_a, label=f"{rec[:-4]}\nPGA  = {pga:.4f} g\nPGV  = {pgv:.4f} m/s\nPGD  = {pgd:.4f} m")
-        plt.plot([T, T], [0,    SaGM], 'r--', label=f"SaGM ={SaGM:.4f} g")
-        plt.plot([0, T], [SaGM, SaGM], 'g--', label=f"T        ={T:.4f} sec")
+        ax.set_xlabel('Period [sec]')
+        plt.plot(periods, Sa_MCE,           'r-',  label=f"MCE_AS    [SDC: {SDC}]")
+        plt.plot(periods, Sa_MCE90,         'r-.', label=f"90%MCE_AS [SDC: {SDC}]")
+        plt.plot(periods, Sa_AVE,           'k--', label="Average R_AS")
+        plt.plot(periods, Sa_GMR,           'b--', label=f"GMR R_AS: {rec}")
+        plt.plot([T1, T1], [0,    SaMax],   'g-',  label=f"T1      ={T1:.4f} sec")
+        plt.plot([Ti, Ti], [0,    Sai  ],   'y--', label=f"0.2T1 ={Ti:.4f} sec")
+        plt.plot([Tf, Tf], [0,    Saf  ],   'y--', label=f"1.5T1 ={Tf:.4f} sec")
+        plt.plot([0,  T1], [S_MT, S_MT],    'r--', label=f"S_MT ={S_MT:.4f} g")
+        plt.plot([0,  T1], [S_AT, S_AT],    'k--', label=f"S_AT  ={S_AT:.4f} g")
+        plt.plot([0,  T1], [S_GT, S_GT],    'b--', label=f"S_GT  ={S_GT:.4f} g")
+        if approach == 1:
+            SF_MCE = S_MT /S_AT
+            Sa_AVEs= SF_MCE *Sa_AVE
+            plt.plot(periods, Sa_AVEs,      'k-',  label=f"Average R_AS [SF_MCE={SF_MCE:.3f}]")
+        elif approach == 2:
+            SF_MCE = S_MT /S_GT
+            Sa_GMRs= SF_MCE *Sa_GMR
+            plt.plot(periods, Sa_GMRs,      'b-',  label=f"GMR R_AS [SF_MCE={SF_MCE:.3f}]")
+        elif approach == 3:
+            SF_MCE = scale_Interval()
+            Sa_AVEs= SF_MCE *Sa_AVE
+            plt.plot(periods, Sa_AVEs,      'k-',  label=f"Average R_AS [SF_MCE={SF_MCE:.3f}]")
+            
         fig.suptitle("Acceleration Response Spectrum", fontsize=16)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/ASR-{rec}-{SaGM:.5f}g.png")
+        os.makedirs(f"{outputDirIDA}/{rec}", exist_ok=True)
+        plt.savefig(f"{outputDirIDA}/{rec}/Spectrum-{rec}.png")
         plt.show()
     
-    return SaGM, pgv
+    return S_MT, SF_MCE
 
 
 def plotMomCurv(outputDir, tagEle, section, typeBuild):

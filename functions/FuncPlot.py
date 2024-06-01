@@ -7,7 +7,7 @@ exec(open("MAIN.py").readlines()[18]) # It SHOULD read and execute exec(open("In
 unitForce   = "kN" if kN==1 else "N"   if N==1  else "kip" if kip==1 else "lb"  
 unitLength  = "m"  if m==1  else "cm"  if cm==1 else "mm"  if mm==1  else "in." if inch==1 else "ft" 
 
-def plotPushoverX(outputDir):
+def plotPushoverX(outputDir, types="monotonic"):
     
     disp    = np.loadtxt(f"{outputDir}/top_disp.txt", delimiter= ' ')
     # reac    = np.loadtxt(f"{outputDir}/reaction.txt", delimiter= ' ')
@@ -25,6 +25,12 @@ def plotPushoverX(outputDir):
     x_Vx = np.column_stack((x, Vx))
     np.savetxt(f"{outputDir}/Pushover.txt", x_Vx)
     
+    Vpeak       = max(Vx)
+    V20peak     = 0.2 *Vpeak
+    xAtV20      = interpolate(V20peak, Vx, x)
+    stiffness   = V20peak /xAtV20
+    xVpeak      = 1/stiffness *Vpeak
+    
     fig, ax = plt.subplots(figsize=(10, 7), dpi=200)
     fig.suptitle(f"Pushover Curve: {outputDir[16:-4]}", fontsize=16)
     ax.set_xlabel(f'Displacement ({unitLength})')
@@ -40,6 +46,11 @@ def plotPushoverX(outputDir):
     elif unitForce=="lb":
         ax.set_ylabel('Shear (kip)')
         plt.plot(x, Vx/1e3, linewidth=0.8)
+    if types == "monotonic":
+        plt.plot([xAtV20, xAtV20], [0,            V20peak*N/kN], 'r--')        # Vertical Line
+        plt.plot([0,      xAtV20], [V20peak*N/kN, V20peak*N/kN], 'r--')   # Horizontal Line
+        plt.plot([0,      xVpeak], [0,            Vpeak*N/kN],   'g--', label = f" stiffness = {stiffness/(kN*m):.1f} kN/m")
+        plt.legend()
     plt.tight_layout()
     plt.show()
     
@@ -97,21 +108,21 @@ def plotStressStrain(outputDir,tagEleList):
     plt.tight_layout()
     plt.show()
     
-def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, scaleFactor, SaGM, rec):
-    os.makedirs(f"{outputDir}/{rec}", exist_ok=True)
+def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, SF_CLP, SF_MCE, S_MT, rec):
+    rec     = rec[:-4]; os.makedirs(f"{outputDir}/{rec}", exist_ok=True)
     n       = nFloors -1
     fig, ax = plt.subplots(n+1, 1, figsize=(10, 5*n), dpi=100)
     ax[n].set_xlabel('time (s)')
     
     # Ground Motion
     gmt     = ta[:, 0]
-    gma     = ta[:, 1] *scaleFactor
+    gma     = ta[:, 1] *SF_CLP *SF_MCE
     igmaMax = np.argmax(np.abs(gma))
     gmaMax  = gma[igmaMax]
     gmtMax  = gmt[igmaMax]
     ax[0].set_ylabel('GMA [g]')
     ax[0].plot(gmt, gma, linewidth=0.8)
-    ax[0].plot(gmtMax, gmaMax, color='red', marker='o', label=f"PGA = {abs(gmaMax):.4f}g\nS_T = {scaleFactor *SaGM:.4f} g")
+    ax[0].plot(gmtMax, gmaMax, color='red', marker='o', label=f"PGA = {abs(gmaMax):.4f}g\nS_T = {SF_CLP *S_MT:.4f} g")
     ax[0].legend()
     
     disp    = np.loadtxt(f"{outputDir}/disp{tag}.txt", delimiter= ' ')
@@ -152,7 +163,7 @@ def plotNTHA(H_typical, H_first, nFloors, outputDir, ta, tag, scaleFactor, SaGM,
     
     fig.suptitle(f"Dynamic Analysis Curves: {rec}", fontsize=16)
     plt.tight_layout()
-    plt.savefig(f"{outputDir}/{rec}/GM-{rec}-{scaleFactor *SaGM:.5f}g.png")
+    plt.savefig(f"{outputDir}/{rec}/GM-{SF_CLP:.3f}-{S_MT:.5f}g.png")
     # plt.show()
     driftMax = max(driftMAX)
     return driftMax
@@ -179,8 +190,8 @@ def interpolate(Xp, x, y):
     result_min = min(results)
     return result_min
 
-def plotIDA(x, y, outputDirIDA, rec, mins, Threshold=False):
-    os.makedirs(f"{outputDirIDA}/{rec}", exist_ok=True)
+def plotIDA(x, y, outputDirIDA, rec, mins, SF_CLP, Threshold=False):
+    rec     = rec[:-4]; os.makedirs(f"{outputDirIDA}/{rec}", exist_ok=True)
     if Threshold == True:
         fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=200)
         ax.set_xlabel('Drift (%)')
@@ -193,13 +204,13 @@ def plotIDA(x, y, outputDirIDA, rec, mins, Threshold=False):
             Sa  = interpolate(5, x, y)
             
         plt.plot([5, 5], [0,  Sa], 'r--', linewidth=3)
-        plt.plot([0, 5], [Sa, Sa], 'r--', label=f" Sa_5% = {Sa:.3f} g", linewidth=3)
+        plt.plot([0, 5], [Sa, Sa], 'r--', label=f" S_@5%ID = {Sa:.3f} g", linewidth=3)
         ax.legend()
-        fig.suptitle(f"IDA Curve: {rec[:-4]}", fontsize=16)
+        fig.suptitle(f"IDA Curve: {rec}", fontsize=16)
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/IDA-{rec[:-4]}-{Sa:.5f}g.png")
+        plt.savefig(f"{outputDirIDA}/{rec}/IDA-{Sa:.5f}g.png")
         plt.show()
-        return Sa
+        return Sa, 0
     else:
         fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=50)
         ax.set_xlabel('Drift (%)')
@@ -209,8 +220,9 @@ def plotIDA(x, y, outputDirIDA, rec, mins, Threshold=False):
         ax.legend()
         fig.suptitle(f"IDA Curve: {rec}", fontsize=16)
         plt.tight_layout()
-        plt.savefig(f"{outputDirIDA}/{rec[:-4]}/IDA-{rec[:-4]}-{mins}.png")
+        plt.savefig(f"{outputDirIDA}/{rec}/IDA-{SF_CLP:.2f}-{x[-1]:.3f}.png")
         # plt.show()
+        return SF_CLP, x[-1]
 
 def plotMomCurv(outputDir, tagEle, section, typeBuild):
     if typeBuild == "CantileverColumn":
@@ -241,9 +253,9 @@ def plotMomCurv(outputDir, tagEle, section, typeBuild):
     
     fig, ax = plt.subplots(figsize=(10, 7), dpi=200)
     fig.suptitle(f"Momemnt-Curvature: {tagEle}")
-    ax.set_xlabel(f'curvature (m^-1)')
+    ax.set_xlabel(f'Curvature (m^-1)')
     ax.set_ylabel('Moment (kN.m)')
-    plt.plot(curvature, moment*N/kN, linewidth=0.8, label=f"M-c: Mpeak={Mpeak*N/kN:.1f} kN.m")
+    plt.plot(curvature, moment*N/kN, linewidth=0.8, label=f"M-C: Mpeak={Mpeak*N/kN:.1f} kN.m")
     plt.plot([curAtM60per, curAtM60per], [0, Mpeak60perc*N/kN], 'r--')        # Vertical Line
     plt.plot([0, curAtM60per], [Mpeak60perc*N/kN, Mpeak60perc*N/kN], 'r--')   # Horizontal Line
     plt.plot([0, curAtMpeakE], [0, Mpeak*N/kN], 'g--', label = f" EI = {EI/(kN*m**2):.1f} kN.m^2")                        # Horizontal Line

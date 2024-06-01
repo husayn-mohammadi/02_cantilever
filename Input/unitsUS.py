@@ -33,7 +33,7 @@ MPa     = 1000      *kPa
 GPa     = 1000      *MPa
 
 g       = 9.80665   *m/s**2
-kg      = 1         *N/(m/s**2)
+kg      = 1         *N/g
 ton     = 1000      *kg
 
 

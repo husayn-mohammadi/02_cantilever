@@ -48,10 +48,12 @@ numSign = 65
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 fa.replace_line('MAIN.py', 31, "linearity       = True                     # True is used for ELF design")
 fa.replace_line('MAIN.py', 32, "typeBuild       = 'coupledWalls'            # 'CantileverColumn', 'coupledWalls', 'buildBeam', 'ShearCritBeam'")
+fa.replace_line('MAIN.py', 34, "typeAnalysis    = ['monotonic']             # 'monotonic', 'cyclic', 'NTHA'")
 fa.replace_line('MAIN.py', 43, "incrMono        = 2*((H_typical*n_story)/4250)")
 fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
 fa.replace_line('MAIN.py', 78, "plot_MomCurv    = False")
 fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
+fa.replace_line('functions/FuncModel.py', 8, "rigidElement = False # True False")
 t_EAna_i    = time.time()
 print(f"{'='*numSign}\nElastic Analysis Started.\n{'='*numSign}\n")
 exec(open("MAIN.py").read()) 
@@ -221,6 +223,7 @@ print(f"{'='*numSign}\nNonlinear Cross-ectional Analysis on Tension Wall  Finish
 fa.replace_line('MAIN.py', 43, "incrMono        = 2*((H_typical*n_story)/4250)")
 fa.replace_line('MAIN.py', 46, "dispTarget      = drift*(H_typical*n_story)")
 fa.replace_line('MAIN.py', 83, "Pu_1wall        = -load['wallG']")
+fa.replace_line('functions/FuncModel.py', 8, "rigidElement = True # True False")
 
 print(f"{'-'*numSign}\nCalculate Required Strength of Composite Walls\n{'-'*numSign}\n")
 print(f"Vu_CB = {Vu_CB /1000:.1f} kN")

@@ -38,6 +38,29 @@ recList         = fa.get_file_names("Input/GM")
 RAS_average     = np.loadtxt("Input/GM/RAS_average.txt")
 outputDirIDA    = "Output/IDA"; os.makedirs(outputDirIDA, exist_ok=True)
 
+def storeData(filePath, array):
+    """
+    Writes a 2D array to a text file. If the file exists, it reads the existing data,
+    appends new data while avoiding duplicates, and then writes the combined data back to the file.
+    
+    Parameters:
+    - filePath: Path to the text file
+    - array: 2D numpy array with two columns
+    """
+    if os.path.exists(filePath):
+        existing_data = np.loadtxt(filePath, delimiter='\t')
+        if existing_data.size == 0:
+            existing_data = array
+        else:
+            # Combine existing data and new data, avoiding duplicates
+            combined_data = np.vstack((existing_data, array))
+            combined_data = np.unique(combined_data, axis=0)
+    else:
+        combined_data = array
+
+    with open(filePath, 'w') as file:
+        for row in combined_data:
+            file.write(f"{row[0]}\t{row[1]}\n")
 
 #=============================================================================
 #    Start IDA
@@ -169,8 +192,11 @@ for i_rec, rec in enumerate(recList):
             ops.wipe(); exec(open("MAIN.py").read())
             list_driftMax.append(100 *abs(driftMax))
             
-            durIDA1     = time.time() - t_begIDA1; mins = int(durIDA1 /60)
-            fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP)
+            durIDA1         = time.time() - t_begIDA1; mins = int(durIDA1 /60)
+            SF_CLPi, IDRi   = fp.plotIDA(list_driftMax, list_SCTtest, outputDirIDA, rec, mins, SF_CLP)
+            S_CTi           = SF_CLPi *S_MT
+            arrIDA          = np.array([[IDRi, S_CTi]])
+            storeData(f"{outputDirIDA}/{rec[:-4]}/IDA-{rec[:2]}.csv", arrIDA)
             
         # Now Interpolate/Extrapolate to get S_CT
         durIDA1 = time.time() - t_begIDA1; mins = int(durIDA1 /60)

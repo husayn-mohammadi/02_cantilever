@@ -147,7 +147,7 @@ for types in typeAnalysis:
         Hw = wall.Hw; tf = wall.tf; Hc2 = wall.Hc2
         fr.recordStressStrain(outputDirWalls, tagEleListToRecord_wall,  wall)
     if typeBuild == "buildBeam":
-        pass
+        tagEleListToRecord_beam = 4000001
     elif typeBuild == "coupledWalls":
         fr.recordStressStrain(outputDirWalls, tagEleListToRecord_wall,  wall)
         # fr.recordStressStrain(outputDirBeams, tagEleListToRecord_beam,  beam)
@@ -242,7 +242,6 @@ for types in typeAnalysis:
         if type(tagNodeControl) != list:
             tagNodeControl = [tagNodeControl]
         nFloors = len(tagNodeControl)
-        if 'recordToLogIDA' in globals(): outputDirNTHA = outputDirIDA
         driftMax = fp.plotNTHA(H_typical, H_first, nFloors, outputDirNTHA, ta, tag, SF_CLP, SF_MCE, S_MT, rec)
         finish_time_NTHA = time.time()
         mins = int((finish_time_NTHA - start_time_NTHA)/60)

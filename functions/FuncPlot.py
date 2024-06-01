@@ -210,7 +210,7 @@ def plotIDA(x, y, outputDirIDA, rec, mins, SF_CLP, Threshold=False):
         plt.tight_layout()
         plt.savefig(f"{outputDirIDA}/{rec}/IDA-{Sa:.5f}g.png")
         plt.show()
-        return Sa
+        return Sa, 0
     else:
         fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=50)
         ax.set_xlabel('Drift (%)')
@@ -222,6 +222,7 @@ def plotIDA(x, y, outputDirIDA, rec, mins, SF_CLP, Threshold=False):
         plt.tight_layout()
         plt.savefig(f"{outputDirIDA}/{rec}/IDA-{SF_CLP:.2f}-{x[-1]:.3f}.png")
         # plt.show()
+        return SF_CLP, x[-1]
 
 def plotMomCurv(outputDir, tagEle, section, typeBuild):
     if typeBuild == "CantileverColumn":
